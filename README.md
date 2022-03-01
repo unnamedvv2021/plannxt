@@ -1,13 +1,10 @@
-# README
+# CSCE606 - Project Plannxt
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Environment:
 
-Things you may want to cover:
+* Ruby version - 3.1.0
 
-* Ruby version
-
-* System dependencies
+* Rails version - v7.0.2.2
 
 * Configuration
 
