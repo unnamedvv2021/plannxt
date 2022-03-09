@@ -1,0 +1,9 @@
+#dest_copy {
+    width: 1200px;
+    height: 400px;
+    border: purple 5px solid;
+}
+div{
+    display: flex;
+    padding:1ch;
+}
