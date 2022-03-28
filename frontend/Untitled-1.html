@@ -7,31 +7,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="testcss.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap.css">
+    <script src="jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
-    <h1>canvas testing</h1>
-    <div id="dest_copy" ondrop="drop_handler(event);" , ondragover="dragover_handler(event);">
-    </div>
-    <br>
-    <div class="source">
-        <!-- every source element in the source should be assigned with class value as "sourceItems" -->
-        <!-- it's used when telling whether we are selecting a source item or an exist item -->
-        <div class="sourceItems" width="120" height="120" draggable="true" id="src_copy0"
-            ondragstart="dragstart_handler(event);" , ondragend="dragend_handler(event);">
-            <img src="pic/猫1.jpg" width="120" height="120">
+    <!-- <div> -->
+    <h1 style="padding: 20px;">Plannxt Test</h1>
+    <!-- buttons -->
+    <div id="inputs">
+        <div id="buttons">
+            <button onclick="clickToEdit(event);">edit</button>
+            <button onclick="clickToSave(event);">save</button>
         </div>
-        <div class="sourceItems" width="120" height="120" draggable="true" id="src_copy1"
-            ondragstart="dragstart_handler(event);" , ondragend="dragend_handler(event);">
-            <img src="pic/猫2.jpg" width="120" height="120">
-        </div>
-        <div class="sourceItems" width="120" height="120" draggable="true" id="src_copy2"
-            ondragstart="dragstart_handler(event);" , ondragend="dragend_handler(event);">
-            <img src="pic/猫3.jpg" width="120" height="120">
+        <div>
+            <label for="timebar">timebar:</label>
+            <input type="range" name="timebar" id="timebar" min="0" max="24" onclick="selectTheTime();" value="0"
+                onchange="showTime();">
+            <input type="number" id="showTimeBar">
         </div>
     </div>
+    <!-- canvas and picker -->
+    <div id="panel">
+        <!-- table -->
+        <div id="table">
+            <table id="tableItems" border="1" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>name</th>
+                        <th>start_time</th>
+                        <th>end_time</th>
+                        <th>owner</th>
+                    </tr>
+                </thead>
+                <tbody id="tableItemsBody">
 
+                </tbody>
+            </table>
+        </div>
+        <!-- canvas -->
+        <div class="canvas">
+            <div id="dest_copy" ondrop="drop_handler(event);" , ondragover="dragover_handler(event);">
+            </div>
+        </div>
+        <div id="source">
+            <!-- every source element in the source should be assigned with class value as "sourceItems" -->
+            <!-- it's used when telling whether we are selecting a source item or an exist item -->
+            <div class="sourceItems" draggable="true" id="src_copy0" ondragstart="dragstart_handler(event);" ,
+                ondragend="dragend_handler(event);">
+                <img src="pic/猫1.jpg" height="50px" width="50px">
+            </div>
+            <div class="sourceItems" draggable="true" id="src_copy1" ondragstart="dragstart_handler(event);" ,
+                ondragend="dragend_handler(event);">
+                <img src="pic/猫2.jpg" height="50px" width="50px">
+            </div>
+            <div class="sourceItems" draggable="true" id="src_copy2" ondragstart="dragstart_handler(event);" ,
+                ondragend="dragend_handler(event);">
+                <img src="pic/猫3.jpg" height="50px" width="50px">
+            </div>
+        </div>
+    </div>
+    <div id="editing_page" style="visibility: hidden;">
+        <label for="id">id: </label>
+        <input type="text" id="cur_id" name="id" readonly style="background-color: rgb(228, 226, 224);">
+        <label for="name">name: </label>
+        <input type="text" id="cur_name" name="name">
+        <label for="start_time">start_time: </label>
+        <input type="text" id="cur_start_time" name="start_time">
+        <label for="end_time">end_time: </label>
+        <input type="text" id="cur_end_time" name="end_time">
+        <button type="text" id="submission" name="submission" onclick="clickToSubmit();">submit</button>
+    </div>
     <script src="script.js"></script>
+    <!-- </div> -->
 </body>
 
 </html>
