@@ -1,0 +1,11 @@
+<h1><%= @plan_model.name %></h1>
+
+<p><%= @plan_model.data %></p>
+
+<ul>
+  <li><%= link_to "Edit", edit_plan_model_path(@plan_model) %></li>
+  <li><%= link_to "Destroy", plan_model_path(@plan_model), data: {
+                    turbo_method: :delete,
+                    turbo_confirm: "Are you sure?"
+                  } %></li>
+</ul>

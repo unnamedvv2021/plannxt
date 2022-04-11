@@ -1,0 +1,45 @@
+<%= form_with model: plan_model do |form| %>
+  <div>
+    <%= form.label :name %><br>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+    <%= form.label :data %><br>
+    <%= form.text_area :data %><br>
+  </div>
+  
+    <div>
+    <%= form.label :creator %><br>
+    <%= form.text_area :creator %><br>
+  </div>
+  
+    <div>
+    <%= form.label :editPermission %><br>
+    <%= form.text_area :editPermission %><br>
+  </div>
+  
+    <div>
+    <%= form.label :viewPermission %><br>
+    <%= form.text_area :viewPermission %><br>
+  </div>
+  
+    <div>
+    <%= form.label :extra1 %><br>
+    <%= form.text_area :extra1 %><br>
+  </div>
+  
+      <div>
+    <%= form.label :extra2 %><br>
+    <%= form.text_area :extra2 %><br>
+  </div>
+  
+      <div>
+    <%= form.label :extra3 %><br>
+    <%= form.text_area :extra3 %><br>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>
