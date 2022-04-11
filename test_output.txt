@@ -1,0 +1,19 @@
+Using the default profile...
+Feature: Home page
+  As a planner
+  I need to see the home page of my app
+  The home page should read saved events and display them 
+
+  Scenario: View welcome page       # features/Load_data.feature:6
+    Given I am on the home page     # features/step_definitions/step.rb:1
+    Then I should see "Plannxt"     # features/step_definitions/step.rb:7
+    Then I should see the canvas    # features/step_definitions/step.rb:12
+    Then I should see the item menu # features/step_definitions/step.rb:17
+
+  Scenario: Show saved data                 # features/Load_data.feature:12
+    Given I have received the saved data    # features/step_definitions/step.rb:22
+    Then I should see event icons on canvas # features/step_definitions/step.rb:28
+
+2 scenarios (2 passed)
+6 steps (6 passed)
+0m0.188s
