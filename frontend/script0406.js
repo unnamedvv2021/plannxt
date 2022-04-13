@@ -84,52 +84,9 @@ function drawItems(value, key, map){
     value.draw();
 }
 function generateTableItems(value, key, map){
-    let tr = `<tr>
-    <td class="data">${value.item_id}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${value.start_time}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${value.end_time}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
-    </tr>`;
+    let id = value.item_id;
+    let tr = `<tr onclick="leftClickById(${id});"><td>${value.item_id}</td><td>${value.name}</td><td>${value.start_time}</td><td>${value.end_time}</td><td>${value.owner}</td></tr>`;
     $("#tableItemsBody").append(tr);
-}
-function clickToEditData(e, item_id, attr){
-    console.log(e.currentTarget.getAttribute("class"));
-    let current_item = plan.items.get(parseInt(item_id));
-    x = e.currentTarget.getBoundingClientRect().left;
-    y = e.currentTarget.getBoundingClientRect().top;
-    // let newDiv = document.createElement("div");
-    // newDiv.id = "editData";
-    // newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
-    if(document.getElementById("editData")){
-        document.getElementById("editData").remove();
-    }
-    $("#table").append(`<div id="editData" style="position: absolute; left: ${x}px; top: ${y}px">
-    <input id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${e.currentTarget.innerText}">
-    </div>`);
-    document.getElementById("blankInput").select();
-    // let blank = `<input type="text" onchange="">`;
-    // $("#editData").append(blank);
-
-}
-function changeData(e, id, attr){
-    // console.log((e.value);
-    let item = plan.items.get(id);
-    
-    if(attr == 'name'){
-        item.name = e.currentTarget.value;
-    }
-    if(attr == 'start_time'){
-        item.start_time = e.currentTarget.value;
-    }
-    if(attr == 'end_time'){
-        item.end_time = e.currentTarget.value;
-    }
-    if(attr == 'owner'){
-        item.owner = e.currentTarget.value;
-    }
-    plan.generateTable();
-    document.getElementById("editData").remove();
 }
 // button action
 function clickToEdit(e){
@@ -278,11 +235,8 @@ function rightClick(e){
 }
 // when clicking on any other space except the menu, the menu disappear
 document.addEventListener('click', function(e){
-    // console.log(e.target.getAttribute("class"));
+    console.log("clickingggggggggggggg");
     closeMenu();
-    if(e.target.getAttribute("class") != "data" && document.getElementById("editData")){
-        document.getElementById("editData").remove();
-    }
 })
 function leftClick(e){
     console.log("leftClick on the item");
