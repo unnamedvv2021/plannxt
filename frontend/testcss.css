@@ -1,20 +1,12 @@
 #dest_copy {
-    width: 500px;
-    height: 300px;
-    border: purple 5px solid;
-}
-div{
-    display: flex;
-    padding:1ch;
+    background: #ddd;
+    /* border: purple 5px solid; */
 }
 /* #deletionMenu {
     padding: 0;
     background-color: rgb(183, 186, 190);
     border: 1px;
 } */
-tr:hover{
-    background-color: rgb(207, 197, 197);
-}
 .context-menu {
     /* display: none; */
     z-index: 1000;

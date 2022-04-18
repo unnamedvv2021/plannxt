@@ -4,119 +4,19 @@ let canvas = document.getElementById("dest_copy");
 let editable = true;
 let tableItems = document.getElementById("tableItems");
 let time = 0;
-let ctx = canvas.getContext("2d");
-let scale = 50;
-const canvasWidth = canvas.width;
-const canvasHeight = canvas.height;
-// var canvas = document.getElementById("canvas");
-var graphs = [];
-var graphAttr = [
-    { x: 20, y: 120, w: 100, h: 60, bgColor: "rgba(111, 84, 153 , 0.8)", canvasObj: canvas },
-    { x: 70, y: 60, w: 50, h: 50, bgColor: "rgba(0, 33, 66 , 0.8)", canvasObj: canvas, shape: "circle" },
-    { x: 20, y: 130, w: 70, h: 70, bgColor: "rgba(228, 134, 50 , 0.8)", canvasObj: canvas, shape: "triangle" }
-];
-var tempGraphArr = [];
-// for (var i = 0; i < graphAttr.length; i++) {
-//     var graph = new dragGraph(graphAttr[i].x, graphAttr[i].y, graphAttr[i].w, graphAttr[i].h,
-//         graphAttr[i].bgColor, graphAttr[i].canvasObj, graphAttr[i].shape);
-//     graphs.push(graph);
+// function draw(){
+//     console.log("yui");
+//     var canvas = document.getElementById("dest_copy");
+//     var ctx = canvas.getContext('2d');
+//     var p = new Path2D(`M10 ${20} h 80 v 80 h -80 Z`);
+//     ctx.stroke(p);
+
 // }
-dragGraph = function (id, x, y, w, h, fillStyle, canvas, graphShape) {
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.fillStyle = fillStyle || "rgba(26, 188, 156 , 0.5)";
-    this.canvas = canvas;
-    this.context = canvas.getContext("2d");
-    this.canvasPos = canvas.getBoundingClientRect();
-    this.graphShape = graphShape;
-}
-
-dragGraph.prototype = {
-    paint: function () {
-        // console.log(this.fillStyle);
-        this.context.beginPath();
-        this.context.fillStyle = this.fillStyle;
-        this.shapeDraw();
-        this.context.fill();
-        this.context.closePath();
-    },
-    isMouseInGraph: function (mouse) {
-        this.context.beginPath();
-        this.shapeDraw();
-        return this.context.isPointInPath(mouse.x, mouse.y);
-    },
-    shapeDraw: function () {
-        if (this.graphShape == "circle") {
-            this.context.arc(this.x, this.y, 50 * 50 / scale, 0, Math.PI * 2);
-            // this.context.arc(70, 60, 50, 0, Math.PI * 2);
-        }
-        else if (this.graphShape == "triangle") {
-            this.context.moveTo(this.x, this.y - 40 * 50 / scale);
-            this.context.lineTo(this.x + 50 * 50 / scale, this.y + 40 * 50 / scale);
-            this.context.lineTo(this.x - 50 * 50 / scale, this.y + 40 * 50 / scale);
-        }
-        else {
-            // console.log("ahdfuihdjo");
-            // console.log(this.x, this.y, this.w, this.h);
-            this.context.rect(this.x-this.w/2, this.y-this.h/2, this.w, this.h);
-        }
-    },
-    erase: function () {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-}
-canvas.addEventListener("mousedown", function (e) {
-    var mouse = {
-        x: e.clientX - canvas.getBoundingClientRect().left,
-        y: e.clientY - canvas.getBoundingClientRect().top
-    };
-    // "shape" here represents the object of dragGraph
-    graphs.forEach(function (shape) {
-        var offset = {
-            x: mouse.x - shape.x,
-            y: mouse.y - shape.y
-        };
-        if (shape.isMouseInGraph(mouse)) {
-            let id = shape.id;
-            console.log("in the rect");
-            tempGraphArr.push(shape);
-            canvas.addEventListener("mousemove", function (e) {
-                mouse = {
-                    x: e.clientX - canvas.getBoundingClientRect().left,
-                    y: e.clientY - canvas.getBoundingClientRect().top
-                };
-
-                if (shape === tempGraphArr[0]) {
-                    shape.x = mouse.x - offset.x;
-                    shape.y = mouse.y - offset.y;
-
-                    shape.erase();
-                    // shape.paint();
-                    graphs.forEach(function(graph){
-                        graph.paint();
-                    })
-                    plan.items.get(id).pos_x = (mouse.x - offset.x) * scale / 50;
-                    plan.items.get(id).pos_y = (mouse.y - offset.y) * scale / 50;
-                    // drawGraph();
-                    // plan.draw();
-                }
-            }, false);
-            canvas.addEventListener("mouseup", function () {
-                tempGraphArr = [];
-            }, false);
-        }
-    });
-    e.preventDefault();
-}, false);
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
     item_id;
     // count_id;
     name;
-    fillStyle;
     start_time; 
     end_time;
     owner;
@@ -130,18 +30,22 @@ class Item{
     width;
     length;
     constructor(){
-
+        
     }
-    //calculateExpression(value.start_time, value.item_id)
     draw(){
         if(this.start_time > time || this.end_time < time){
-            // console.log("returned");
             return;
         }
-        // console.log("thishishihsihs");
-        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.height * 50 / scale, this.fillStyle, canvas, this.type);
-        graphs.push(graph);
-        graph.paint();
+        console.log("item drawing ", this.type, this.item_id);
+        let div = document.getElementById(this.type);
+        let copy = div.cloneNode(true);
+        copy.id = this.item_id;
+        copy.name = this.name;
+        copy.setAttribute("class", "items");
+        copy.setAttribute("oncontextmenu", "rightClick(event);");
+        copy.setAttribute("onclick", "leftClick(event);")
+        copy.style.cssText += `position: absolute; left: ${this.pos_x}px; top: ${this.pos_y}px;`;
+        canvas.appendChild(copy);
     }
 }
 class Plan{
@@ -155,7 +59,7 @@ class Plan{
     addItem(item){
         let id = item.item_id;
         if(this.items.has(id)){
-            // it's wrong, as the id is self-incremented, we shouldn't have
+            // it's wrong, as the id is self-incremented, we shouldn't have 
         }else{
             this.items.set(id, item);
         }
@@ -168,13 +72,11 @@ class Plan{
         }
     }
     draw(){
-        graphs = [];
-        // console.log("plan drawing");
-        // console.log(this.items.size);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // while(canvas.hasChildNodes()){
-        //     canvas.removeChild(canvas.firstChild);
-        // }
+        console.log("plan drawing");
+        console.log(this.items.size);
+        while(canvas.hasChildNodes()){
+            canvas.removeChild(canvas.firstChild);
+        }
         this.items.forEach(drawItems);
     }
     generateTable(){
@@ -187,70 +89,31 @@ class Plan{
 let plan = new Plan();
 // hashmap iteration function
 function drawItems(value, key, map){
-    // console.log(value);
     value.draw();
-}
-function calculateExpression(expression, id){
-  var numberRe = /^\d+$/i;
-  var startTimeRe = /^ts\d+\+\d+$/i;
-  var endTimeRe = /^te\d+\+\d+$/i;
-  if(numberRe.test(expression)){
-    return expression;
-  }
-  else if (startTimeRe.test(expression)) {
-    var matchedData = expression.match(/\d+/g);
-    var parentId = matchedData[0];
-    var offset = matchedData[1];
-    // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
-    // Self addition is not allowed. Example: TS11 = TS11 + 1.
-    if(parentId <= id && plan.items.get(parseInt(parentId)) && plan.items.get(parseInt(parentId)).start_time != expression){
-      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).start_time, parentId);
-      if(numberRe.test(parentValue)){
-        return parseInt(parentValue) + parseInt(offset);
-      }
-    }
-  }
-  else if (endTimeRe.test(expression)) {
-    var matchedData = expression.match(/\d+/g);
-    var parentId = matchedData[0];
-    var offset = matchedData[1];
-    if(parentId < id && plan.items.get(parseInt(parentId))){
-      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).end_time, parentId);
-      if(numberRe.test(parentValue)){
-        return parseInt(parentValue) + parseInt(offset);
-      }
-    }
-  }
-  return 'Invalid!'
 }
 function generateTableItems(value, key, map){
     let tr = `<tr>
     <td class="data">${value.item_id}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${calculateExpression(value.start_time, value.item_id)}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateExpression(value.end_time, value.item_id)}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${value.start_time}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${value.end_time}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
     </tr>`;
     $("#tableItemsBody").append(tr);
 }
 function clickToEditData(e, item_id, attr){
-    // console.log("uuuuu", e.currentTarget.getAttribute("class"));
+    console.log(e.currentTarget.getAttribute("class"));
     let current_item = plan.items.get(parseInt(item_id));
-    let table = document.getElementById("table");
-    ox = table.getBoundingClientRect().left;
-    oy = table.getBoundingClientRect().top;
     x = e.currentTarget.getBoundingClientRect().left;
     y = e.currentTarget.getBoundingClientRect().top;
-    console.log(item_id, x, y, ox, oy, e.currentTarget);
     // let newDiv = document.createElement("div");
     // newDiv.id = "editData";
     // newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
     if(document.getElementById("editData")){
         document.getElementById("editData").remove();
     }
-    console.log("1234567", table.scrollLeft);
-    $("#table").append(`<div id="editData" style="position: absolute; left: ${x - ox + 3 + table.scrollLeft}px; top: ${y - oy + 3 + table.scrollTop}px">
-    <input style="width:60px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${e.currentTarget.innerText}">
+    $("#table").append(`<div id="editData" style="position: absolute; left: ${x}px; top: ${y}px">
+    <input id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${e.currentTarget.innerText}">
     </div>`);
     document.getElementById("blankInput").select();
     // let blank = `<input type="text" onchange="">`;
@@ -260,7 +123,7 @@ function clickToEditData(e, item_id, attr){
 function changeData(e, id, attr){
     // console.log((e.value);
     let item = plan.items.get(id);
-
+    
     if(attr == 'name'){
         item.name = e.currentTarget.value;
     }
@@ -280,7 +143,7 @@ function changeData(e, id, attr){
 function clickToEdit(e){
     //
     editable = true;
-    // console.log(editable);
+    console.log(editable);
     return;
 }
 function clickToSave(e){
@@ -317,20 +180,15 @@ function clickToSubmit(){
     document.getElementById("cur_id").value = -1;
 }
 function selectTheTime(){
-    // console.log("test clicking the timebar");
+    console.log("test clicking the timebar");
     time = document.getElementById("timebar").value;
-    // console.log("current time is ", time);
-    plan.draw();
-}
-function selectTheScale(){
-    scale = document.getElementById("scale").value;
-    canvas.width = canvasWidth * 50 / scale;
-    canvas.height = canvasHeight * 50 / scale;
+    console.log("current time is ", time);
+    //
     plan.draw();
 }
 function showTime(){
     let time = document.getElementById("timebar").value;
-    document.getElementById("showTimebar").innerText = `timebar:    ${time}`;
+    document.getElementById("showTimeBar").value = time;
 }
 function dragstart_handler(ev) {
     if(editable == false){
@@ -348,7 +206,7 @@ function dragstart_handler(ev) {
     ev.dataTransfer.setDragImage(dragdiv, offsetx * 2, offsety * 2);
     // Tell the browser both copy and move are possible
     ev.effectAllowed = "copyMove";
-
+    
 }
 function dragover_handler(ev) {
     ev.preventDefault();
@@ -359,9 +217,8 @@ function drop_handler(ev) {
     if(editable == false){
         return;
     }
-    x = ev.clientX - canvas.getBoundingClientRect().left;
-    y = ev.clientY - canvas.getBoundingClientRect().top;
-    console.log(ev.clientX, ev.clientY, canvas.getBoundingClientRect().left, canvas.getBoundingClientRect().top);
+    x = ev.pageX;
+    y = ev.pageY;
     console.log("Drop");
     ev.preventDefault();
     let id = ev.dataTransfer.getData("text");
@@ -369,32 +226,24 @@ function drop_handler(ev) {
     if (dragDiv.getAttribute("class") == "sourceItems" && ev.target.id == "dest_copy") {
         // copy an item and show it on the screen
         // "true" in parentheses ensures that the entire div is copied, including deeper elements
-
-        // var nodeCopy = dragDiv.cloneNode(true);
-        // nodeCopy.id = cnt;
-        // nodeCopy.style.cssText += `position: absolute; left: ${x - offsetx}px; top: ${y - offsety}px;`;
-        // nodeCopy.setAttribute("oncontextmenu", "rightClick(event);");
-        // nodeCopy.setAttribute("class", "items");
-        // nodeCopy.setAttribute("onclick", "leftClick(event);")
-        // ev.target.appendChild(nodeCopy);
-
-        
+        var nodeCopy = dragDiv.cloneNode(true);
+        nodeCopy.id = cnt;
+        nodeCopy.style.cssText += `position: absolute; left: ${x - offsetx}px; top: ${y - offsety}px;`;
+        nodeCopy.setAttribute("oncontextmenu", "rightClick(event);");
+        nodeCopy.setAttribute("class", "items");
+        nodeCopy.setAttribute("onclick", "leftClick(event);")
+        ev.target.appendChild(nodeCopy);
+        cnt++;
         // create a new item, then insert it into the plan and finally update the table
         let current_item = new Item();
-        current_item.item_id = parseInt(cnt);
-        current_item.pos_x = x * scale / 50;
-        current_item.pos_y = y * scale / 50;
+        current_item.item_id = parseInt(nodeCopy.id);
+        current_item.pos_x = x - offsetx;
+        current_item.pos_y = y - offsety;
         current_item.type = dragDiv.id;
-        current_item.width = 30;
-        current_item.height = 40;
         plan.addItem(current_item);
-        console.log("asss", plan.items);
         plan.generateTable();
-        current_item.draw();
         // editing information
         showEditingPage(current_item);
-        
-        cnt++;
     }
     // here is a bug, when the target location is outside of the "dest_copy" but still inside
     // the current div (ev.target.id == id), it still works for the drag
@@ -498,7 +347,7 @@ function decodeJSON(str){
     cnt = 16;
     let plan = new Plan();
     // decode the JSON
-
+    
     // mock a plan
     let it1 = new Item();
     it1.name = "weiwei";
@@ -506,38 +355,29 @@ function decodeJSON(str){
     it1.start_time = 0;
     it1.end_time = 10;
     it1.type = "src_copy0";
-    it1.pos_x = 80;
-    it1.pos_y = 40;
+    it1.pos_x = 400;
+    it1.pos_y = 200;
     it1.owner = "chu";
-    it1.width = 100;
-    it1.height = 60;
-    it1.type = "rect";
 
     let it2 = new Item();
     it2.name = "chuxi";
     it2.item_id = 11;
-    it2.start_time = 0;
+    it2.start_time = 11;
     it2.end_time = 16;
     it2.type = "src_copy2";
-    it2.pos_x = 400;
-    it2.pos_y = 300;
+    it2.pos_x = 700;
+    it2.pos_y = 400;
     it2.owner = "zhang";
-    it2.type = "triangle";
-    it2.width = 30;
-    it2.height = 40;
 
     let it3 = new Item();
     it3.name = "zhang";
     it3.item_id = 14;
-    it3.start_time = 0;
+    it3.start_time = 14;
     it3.end_time = 18;
     it3.type = "src_copy1";
-    it3.pos_x = 280;
-    it3.pos_y = 120;
+    it3.pos_x = 480;
+    it3.pos_y = 180;
     it3.owner = "youli";
-    it3.type = "circle";
-    it3.height = 15;
-    it3.width = 23;
 
     plan.items.set(0, it1);
     plan.items.set(11, it2);
@@ -554,6 +394,7 @@ function getJSON(){
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
+    draw();
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
     let json = getJSON();
@@ -561,3 +402,4 @@ window.onload = function(){
     plan.draw();
     plan.generateTable();
 }
+
