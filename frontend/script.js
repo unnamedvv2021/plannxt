@@ -9,7 +9,7 @@ class Item{
     item_id;
     // count_id;
     name;
-    start_time; 
+    start_time;
     end_time;
     owner;
     setup_time;
@@ -22,10 +22,11 @@ class Item{
     width;
     length;
     constructor(){
-        
+
     }
+    //calculateExpression(value.start_time, value.item_id)
     draw(){
-        if(this.start_time > time || this.end_time < time){
+        if(calculateExpression(this.start_time, this.item_id) > time || calculateExpression(this.end_time, this.item_id) < time){
             return;
         }
         console.log("item drawing ", this.type, this.item_id);
@@ -51,7 +52,7 @@ class Plan{
     addItem(item){
         let id = item.item_id;
         if(this.items.has(id)){
-            // it's wrong, as the id is self-incremented, we shouldn't have 
+            // it's wrong, as the id is self-incremented, we shouldn't have
         }else{
             this.items.set(id, item);
         }
@@ -83,12 +84,45 @@ let plan = new Plan();
 function drawItems(value, key, map){
     value.draw();
 }
+function calculateExpression(expression, id){
+  var numberRe = /^\d+$/i;
+  var startTimeRe = /^ts\d+\+\d+$/i;
+  var endTimeRe = /^te\d+\+\d+$/i;
+  if(numberRe.test(expression)){
+    return expression;
+  }
+  else if (startTimeRe.test(expression)) {
+    var matchedData = expression.match(/\d+/g);
+    var parentId = matchedData[0];
+    var offset = matchedData[1];
+    // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
+    // Self addition is not allowed. Example: TS11 = TS11 + 1.
+    if(parentId <= id && plan.items.get(parseInt(parentId)) && plan.items.get(parseInt(parentId)).start_time != expression){
+      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).start_time, parentId);
+      if(numberRe.test(parentValue)){
+        return parseInt(parentValue) + parseInt(offset);
+      }
+    }
+  }
+  else if (endTimeRe.test(expression)) {
+    var matchedData = expression.match(/\d+/g);
+    var parentId = matchedData[0];
+    var offset = matchedData[1];
+    if(parentId < id && plan.items.get(parseInt(parentId))){
+      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).end_time, parentId);
+      if(numberRe.test(parentValue)){
+        return parseInt(parentValue) + parseInt(offset);
+      }
+    }
+  }
+  return 'Invalid!'
+}
 function generateTableItems(value, key, map){
     let tr = `<tr>
     <td class="data">${value.item_id}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${value.start_time}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${value.end_time}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${calculateExpression(value.start_time, value.item_id)}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateExpression(value.end_time, value.item_id)}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
     </tr>`;
     $("#tableItemsBody").append(tr);
@@ -104,8 +138,18 @@ function clickToEditData(e, item_id, attr){
     if(document.getElementById("editData")){
         document.getElementById("editData").remove();
     }
+    var dispalyText;
+    if(attr == 'start_time'){
+      dispalyText = plan.items.get(item_id).start_time;
+    }
+    else if (attr == 'end_time') {
+      dispalyText = plan.items.get(item_id).end_time;
+    }
+    else {
+      dispalyText = e.currentTarget.innerText;
+    }
     $("#table").append(`<div id="editData" style="position: absolute; left: ${x}px; top: ${y}px">
-    <input id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${e.currentTarget.innerText}">
+    <input id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
     </div>`);
     document.getElementById("blankInput").select();
     // let blank = `<input type="text" onchange="">`;
@@ -115,7 +159,7 @@ function clickToEditData(e, item_id, attr){
 function changeData(e, id, attr){
     // console.log((e.value);
     let item = plan.items.get(id);
-    
+
     if(attr == 'name'){
         item.name = e.currentTarget.value;
     }
@@ -198,7 +242,7 @@ function dragstart_handler(ev) {
     ev.dataTransfer.setDragImage(dragdiv, offsetx * 2, offsety * 2);
     // Tell the browser both copy and move are possible
     ev.effectAllowed = "copyMove";
-    
+
 }
 function dragover_handler(ev) {
     ev.preventDefault();
@@ -339,7 +383,7 @@ function decodeJSON(str){
     cnt = 16;
     let plan = new Plan();
     // decode the JSON
-    
+
     // mock a plan
     let it1 = new Item();
     it1.name = "weiwei";
@@ -393,4 +437,3 @@ window.onload = function(){
     plan.draw();
     plan.generateTable();
 }
-
