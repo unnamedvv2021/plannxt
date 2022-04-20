@@ -3,8 +3,10 @@
 one:
   level: 1
   name: MyString
-  password: MyString
   email: MyString
+  password_digest: MyString
+  viewPermission: MyString
+  editPermission: MyString
   description: MyText
   extra1: MyString
   extra2: MyString
@@ -13,8 +15,10 @@ one:
 two:
   level: 1
   name: MyString
-  password: MyString
   email: MyString
+  password_digest: MyString
+  viewPermission: MyString
+  editPermission: MyString
   description: MyText
   extra1: MyString
   extra2: MyString

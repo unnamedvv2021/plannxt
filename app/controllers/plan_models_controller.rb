@@ -1,5 +1,6 @@
 class PlanModelsController < ApplicationController
   protect_from_forgery with: :null_session
+  
   def edit_page
     @plan_model = PlanModel.all
   end
