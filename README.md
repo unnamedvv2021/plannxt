@@ -25,3 +25,14 @@ Unit Test:
 2 "check data plan1 with id 1" 
  "plan1" is a sample data that already exist in the original fixtures of database. This would test the database lookup.
 
+API:
+
+PlanModel:
+
+ Read: GET /plan_models_json/:id
+ 
+ New: POST /plan_models_json
+ 
+ Update: POST /plan_models_json/:id
+ 
+ Delete: DELETE /plan_models_json/:id
