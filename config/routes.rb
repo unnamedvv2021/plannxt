@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   get "/login", :to => redirect('/frontend/Untitled-1.html')
   get "/articles", to: "articles#index"
   get "/articles_json", to: "articles#articles_json"
-  get "/edit_page", to: "plan_models#edit_page"
+  #get "/edit_page", to: "plan_models#edit_page"
   
   resources :plan_models
   
