@@ -5,6 +5,7 @@ class SessionsController < ApplicationController
       if !user.present?
           user = User.find_by(name: params[:email_username])
       end
+      logger.info "come here"
       # finds existing user, checks to see if user can be authenticated
       if user.present? && user.authenticate(params[:password])
       # sets up user.id sessions
