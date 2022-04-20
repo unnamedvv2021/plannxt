@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   #root to: redirect('/frontend/Untitled-1.html')
-  root to: "plan_models#index"
+  root 'welcome#index'
+  #root to: "plan_models#index"
   get "/login", :to => redirect('/frontend/Untitled-1.html')
   get "/articles", to: "articles#index"
   get "/articles_json", to: "articles#articles_json"
