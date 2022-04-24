@@ -37,8 +37,17 @@
             </a>
           </div>
           <div class="u-custom-menu u-nav-container">
-            <ul class="u-nav u-unstyled u-nav-1"><li class="u-nav-item"><a class="u-button-style u-nav-link u-text-active-palette-1-base u-text-hover-palette-2-base" href="welcome.html" style="padding: 10px 20px;">welcome</a>
-</li></ul>
+            
+              <% if Current.user %>
+                Logged in as: <%= Current.user.name %><br>
+                <%= link_to 'Edit Password', edit_password_path %>
+                <%= button_to 'Logout', logout_path, method: :delete %>
+                <% else %>
+                <%= link_to 'Sign Up', sign_up_path %>
+                or
+                <%= link_to 'Login', sign_in_path %>
+              <% end %>
+            
           </div>
           <div class="u-custom-menu u-nav-container-collapse">
             <div class="u-black u-container-style u-inner-container-layout u-opacity u-opacity-95 u-sidenav">
@@ -63,7 +72,7 @@
                 <h1 class="u-custom-font u-font-raleway u-text u-title u-text-1">PlanNXT</h1>
                 <p class="u-text u-text-2"> PlanNXT is a versatile tool to design and edit floor layout plan for ceremonies, meetings. It also support arranging equipments and workers as well as calculating expensives.</p>
                 <p class="u-text u-text-black u-text-3">by FashioNXT</p>
-                <a href="/sign_in" class="u-black u-btn u-button-style u-custom-font u-font-oswald u-hover-palette-3-base u-btn-1">Start Plan</a>
+                <a href="/edit_page" class="u-black u-btn u-button-style u-custom-font u-font-oswald u-hover-palette-3-base u-btn-1">Start Plan</a>
               </div>
             </div>
             <div class="u-container-style u-image u-layout-cell u-right-cell u-size-34 u-image-1">

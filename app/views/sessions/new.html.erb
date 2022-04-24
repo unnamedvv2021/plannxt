@@ -35,8 +35,17 @@
             </a>
           </div>
           <div class="u-custom-menu u-nav-container">
-            <ul class="u-nav u-unstyled u-nav-1"><li class="u-nav-item"><a class="u-button-style u-nav-link u-text-active-palette-1-base u-text-hover-palette-2-base" href="welcome.html" style="padding: 10px 20px;">welcome</a>
-</li></ul>
+
+        <% if Current.user %>
+          Logged in as: <%= Current.user.name %><br>
+          <%= link_to 'Edit Password', edit_password_path %>
+          <%= button_to 'Logout', logout_path, method: :delete %>
+          <% else %>
+          <%= link_to 'Sign Up', sign_up_path %>
+          or
+          <%= link_to 'Login', sign_in_path %>
+        <% end %>
+
           </div>
           <div class="u-custom-menu u-nav-container-collapse">
             <div class="u-black u-container-style u-inner-container-layout u-opacity u-opacity-95 u-sidenav">
@@ -88,8 +97,9 @@
                       
                     
                   </div>
-                  <a href="https://nicepage.com/website-templates" class="u-border-active-palette-2-base u-border-hover-palette-1-base u-border-none u-btn u-button-style u-login-control u-login-forgot-password u-none u-text-active-palette-2-base u-text-grey-40 u-text-hover-palette-2-base u-btn-2">Forgot password?</a>
-                  <a href="https://nicepage.studio" class="u-border-active-palette-2-base u-border-hover-palette-1-base u-border-none u-btn u-button-style u-login-control u-login-create-account u-none u-text-active-palette-2-base u-text-grey-40 u-text-hover-palette-2-base u-btn-3">Don't have an account?</a>
+                  <a <%= link_to 'Forgot your password?', password_reset_path, :class => "u-border-active-palette-2-base u-border-hover-palette-1-base u-border-none u-btn u-button-style u-login-control u-login-forgot-password u-none u-text-active-palette-2-base u-text-grey-40 u-text-hover-palette-2-base u-btn-2" %>
+                  </a>
+                  <a href="/sign_up" class="u-border-active-palette-2-base u-border-hover-palette-1-base u-border-none u-btn u-button-style u-login-control u-login-create-account u-none u-text-active-palette-2-base u-text-grey-40 u-text-hover-palette-2-base u-btn-3">Don't have an account?</a>
                 </div>
               </div>
             </div>
