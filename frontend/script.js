@@ -6,28 +6,28 @@ let tableItems = document.getElementById("tableItems");
 let time = 0;
 let ctx = canvas.getContext("2d");
 let scale = 50;
+let top_selected = true;
+let fur_selected = true;
+let elec_selected = true;
+let staff_selected = true;
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 // var canvas = document.getElementById("canvas");
 var graphs = [];
-var graphAttr = [
-    { x: 20, y: 120, w: 100, h: 60, bgColor: "rgba(111, 84, 153 , 0.8)", canvasObj: canvas },
-    { x: 70, y: 60, w: 50, h: 50, bgColor: "rgba(0, 33, 66 , 0.8)", canvasObj: canvas, shape: "circle" },
-    { x: 20, y: 130, w: 70, h: 70, bgColor: "rgba(228, 134, 50 , 0.8)", canvasObj: canvas, shape: "triangle" }
-];
+// var graphAttr = [
+//     { x: 20, y: 120, w: 100, h: 60, bgColor: "rgba(111, 84, 153 , 0.8)", canvasObj: canvas },
+//     { x: 70, y: 60, w: 50, h: 50, bgColor: "rgba(0, 33, 66 , 0.8)", canvasObj: canvas, shape: "circle" },
+//     { x: 20, y: 130, w: 70, h: 70, bgColor: "rgba(228, 134, 50 , 0.8)", canvasObj: canvas, shape: "triangle" }
+
+// ];
 var tempGraphArr = [];
-// for (var i = 0; i < graphAttr.length; i++) {
-//     var graph = new dragGraph(graphAttr[i].x, graphAttr[i].y, graphAttr[i].w, graphAttr[i].h,
-//         graphAttr[i].bgColor, graphAttr[i].canvasObj, graphAttr[i].shape);
-//     graphs.push(graph);
-// }
-dragGraph = function (id, x, y, w, h, fillStyle, canvas, graphShape) {
+dragGraph = function (id, x, y, w, h, strokeStyle, canvas, graphShape) {
     this.id = id;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
-    this.fillStyle = fillStyle || "rgba(26, 188, 156 , 0.5)";
+    this.strokeStyle = strokeStyle || "rgba(26, 188, 156, 1)";
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
     this.canvasPos = canvas.getBoundingClientRect();
@@ -36,32 +36,55 @@ dragGraph = function (id, x, y, w, h, fillStyle, canvas, graphShape) {
 
 dragGraph.prototype = {
     paint: function () {
-        // console.log(this.fillStyle);
         this.context.beginPath();
-        this.context.fillStyle = this.fillStyle;
+        this.context.strokeStyle = this.strokeStyle;
         this.shapeDraw();
-        this.context.fill();
-        this.context.closePath();
     },
     isMouseInGraph: function (mouse) {
         this.context.beginPath();
+        this.context.strokeStyle = "rgba(0, 0, 0, 0)";
+        // this.context.strokeStyle = 'rgba'
         this.shapeDraw();
-        return this.context.isPointInPath(mouse.x, mouse.y);
+        this.context.strokeStyle = this.strokeStyle;
+        let res = this.context.isPointInPath(mouse.x, mouse.y);
+        return res;
     },
+    
     shapeDraw: function () {
-        if (this.graphShape == "circle") {
-            this.context.arc(this.x, this.y, 50 * 50 / scale, 0, Math.PI * 2);
-            // this.context.arc(70, 60, 50, 0, Math.PI * 2);
+        if (this.graphShape == "rect_room"){
+            // draw a rect room
+            this.context.rect(this.x-this.w/2, this.y-this.h/2, this.w, this.h);
+            this.context.setLineDash([3, 6]);
+            this.context.stroke();
+            this.context.closePath();
         }
-        else if (this.graphShape == "triangle") {
+        else if (this.graphShape == "round_room"){
+            // draw a round room
+            this.context.arc(this.x, this.y, this.w/2, 0, Math.PI * 2);
+            this.context.setLineDash([3, 6]);
+            this.context.stroke();
+            this.context.closePath();
+        }
+        else if (this.graphShape == "triangle_room"){
+            // draw a triangle room
             this.context.moveTo(this.x, this.y - 40 * 50 / scale);
             this.context.lineTo(this.x + 50 * 50 / scale, this.y + 40 * 50 / scale);
             this.context.lineTo(this.x - 50 * 50 / scale, this.y + 40 * 50 / scale);
+            this.context.closePath();
+            this.context.setLineDash([3, 6]);
+            this.context.stroke();
         }
-        else {
-            // console.log("ahdfuihdjo");
-            // console.log(this.x, this.y, this.w, this.h);
-            this.context.rect(this.x-this.w/2, this.y-this.h/2, this.w, this.h);
+        else if (this.graphShape == "couch"){
+            let ctx = this.context;
+            ctx.setLineDash([1, 0]);
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x + 20 * 50/scale, this.y);
+            ctx.lineTo(this.x + 20 * 50/scale, this.y + 20 * 50/scale);
+            ctx.lineTo(this.x - 20 * 50/scale, this.y + 20 * 50/scale);
+            ctx.lineTo(this.x - 20 * 50/scale, this.y - 20 * 50/scale);
+            ctx.lineTo(this.x, this.y - 20 * 50/scale);
+            ctx.closePath();
+            ctx.stroke();
         }
     },
     erase: function () {
@@ -80,8 +103,8 @@ canvas.addEventListener("mousedown", function (e) {
             y: mouse.y - shape.y
         };
         if (shape.isMouseInGraph(mouse)) {
+            // console.log("cc");
             let id = shape.id;
-            console.log("in the rect");
             tempGraphArr.push(shape);
             canvas.addEventListener("mousemove", function (e) {
                 mouse = {
@@ -95,13 +118,15 @@ canvas.addEventListener("mousedown", function (e) {
 
                     shape.erase();
                     // shape.paint();
-                    graphs.forEach(function(graph){
-                        graph.paint();
-                    })
+                    // console.log("paint in here");
+                    // graphs.forEach(function(graph){
+                    //     graph.paint();
+                    // })
                     plan.items.get(id).pos_x = (mouse.x - offset.x) * scale / 50;
                     plan.items.get(id).pos_y = (mouse.y - offset.y) * scale / 50;
                     // drawGraph();
-                    // plan.draw();
+                    
+                    plan.draw();
                 }
             }, false);
             canvas.addEventListener("mouseup", function () {
@@ -111,13 +136,32 @@ canvas.addEventListener("mousedown", function (e) {
     });
     e.preventDefault();
 }, false);
+// right click to edit the icons
+canvas.addEventListener("contextmenu", function(e){
+    var mouse = {
+        x: e.clientX - canvas.getBoundingClientRect().left,
+        y: e.clientY - canvas.getBoundingClientRect().top
+    };
+    graphs.forEach(function (shape){
+        var offset = {
+            x: mouse.x - shape.x,
+            y: mouse.y - shape.y
+        };
+        if (shape.isMouseInGraph(mouse)) {
+            closeMenu();
+            rightClick(e);
+        }
+    });
+    e.preventDefault();
+}, false);
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
     item_id;
+    // layer consists of: top, furniture, electrical, and staff
+    layer;
     // count_id;
     name;
-    fillStyle;
-    start_time; 
+    start_time;
     end_time;
     owner;
     setup_time;
@@ -134,12 +178,26 @@ class Item{
     }
     //calculateExpression(value.start_time, value.item_id)
     draw(){
-        if(this.start_time > time || this.end_time < time){
-            // console.log("returned");
+        if(calculateExpression(this.start_time, this.item_id) > time || calculateExpression(this.end_time, this.item_id) < time){
             return;
         }
+        if((this.layer == "top" && !top_selected) || (this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
+            return;
+        }
+        if(this.layer == "top"){
+            this.strokeStyle = "blue";
+        }
+        if(this.layer == "furniture"){
+            this.strokeStyle = "rgba(241, 174, 28, 1)";
+        }
+        if(this.layer == "electrical"){
+            this.strokeStyle = "green";
+        }
+        if(this.layer == "staff"){
+            this.strokeStyle = "red";
+        }
         // console.log("thishishihsihs");
-        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.height * 50 / scale, this.fillStyle, canvas, this.type);
+        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.height * 50 / scale, this.strokeStyle, canvas, this.type);
         graphs.push(graph);
         graph.paint();
     }
@@ -233,6 +291,89 @@ function generateTableItems(value, key, map){
     </tr>`;
     $("#tableItemsBody").append(tr);
 }
+function clickToSelectTop(){
+    // if top is currently selected
+    let bt = document.getElementById("top_selector");
+    if(top_selected){
+        // change the color of the button
+        top_selected = false;
+        console.log("sssss");
+        bt.style.cssText = "background-color: rgb(145, 203, 241); border-color: rgb(145, 203, 241);";
+        // change the items in the sources
+        document.getElementById("top_layer_items").style.display = "none";
+        // draw the items in the canvas
+        plan.draw();
+    }else{
+        // change the color of the button
+        top_selected = true;
+        // bt.style.backgroundColor = "#1c84c6";
+        // bt.style.borderColor = "#1c84c6"
+        bt.style.cssText = "background-color: #1c84c6; border-color: #1c84c6;"
+        // change the items in the sources
+        document.getElementById("top_layer_items").style.display = "";
+        plan.draw();
+    }
+}
+function clickToSelectFurniture(){
+    // if top is currently selected
+    let bt = document.getElementById("furniture_selector");
+    if(fur_selected){
+        // change the color of the button
+        fur_selected = false;
+        bt.style.cssText = "background-color: rgb(240, 225, 161); border-color: rgb(240, 225, 161);";
+        // change the items in the sources
+        document.getElementById("furniture_layer_items").style.display = "none";
+        // draw the items in the canvas
+        plan.draw();
+    }else{
+        // change the color of the button
+        fur_selected = true;
+        bt.style.cssText = "background-color: #f8ac59; border-color: #f8ac59;"
+        // change the items in the sources
+        document.getElementById("furniture_layer_items").style.display = "";
+        plan.draw();
+    }
+}
+function clickToSelectElectrical(){
+    // if top is currently selected
+    let bt = document.getElementById("electrical_selector");
+    if(elec_selected){
+        // change the color of the button
+        elec_selected = false;
+        bt.style.cssText = "background-color: rgb(149, 223, 188); border-color: rgb(149, 223, 188);";
+        // change the items in the sources
+        document.getElementById("electrical_layer_items").style.display = "none";
+        // draw the items in the canvas
+        plan.draw();
+    }else{
+        // change the color of the button
+        elec_selected = true;
+        bt.style.cssText = "background-color: #16987e; border-color: #16987e;"
+        // change the items in the sources
+        document.getElementById("electrical_layer_items").style.display = "";
+        plan.draw();
+    }
+}
+function clickToSelectStaff(){
+    // if top is currently selected
+    let bt = document.getElementById("staff_selector");
+    if(staff_selected){
+        // change the color of the button
+        staff_selected = false;
+        bt.style.cssText = "background-color: rgb(241, 159, 153); border-color: rgb(241, 159, 153);";
+        // change the items in the sources
+        document.getElementById("staff_layer_items").style.display = "none";
+        // draw the items in the canvas
+        plan.draw();
+    }else{
+        // change the color of the button
+        staff_selected = true;
+        bt.style.cssText = "background-color: #ea394c; border-color: #ea394c;"
+        // change the items in the sources
+        document.getElementById("staff_layer_items").style.display = "";
+        plan.draw();
+    }
+}
 function clickToEditData(e, item_id, attr){
     // console.log("uuuuu", e.currentTarget.getAttribute("class"));
     let current_item = plan.items.get(parseInt(item_id));
@@ -248,9 +389,18 @@ function clickToEditData(e, item_id, attr){
     if(document.getElementById("editData")){
         document.getElementById("editData").remove();
     }
-    console.log("1234567", table.scrollLeft);
+    var dispalyText;
+    if(attr == 'start_time'){
+      dispalyText = plan.items.get(item_id).start_time;
+    }
+    else if (attr == 'end_time') {
+      dispalyText = plan.items.get(item_id).end_time;
+    }
+    else {
+      dispalyText = e.currentTarget.innerText;
+    }
     $("#table").append(`<div id="editData" style="position: absolute; left: ${x - ox + 3 + table.scrollLeft}px; top: ${y - oy + 3 + table.scrollTop}px">
-    <input style="width:60px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${e.currentTarget.innerText}">
+    <input style="width:60px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
     </div>`);
     document.getElementById("blankInput").select();
     // let blank = `<input type="text" onchange="">`;
@@ -289,37 +439,11 @@ function clickToSave(e){
     // communicate with the server
     return;
 }
-// click to submit
-function clickToSubmit(){
-    // hide the editing table
-    document.getElementById("editing_page").style.visibility = "hidden";
-    // update the parameters
-    // get the current id
-    let curID = document.getElementById("cur_id").value;
-    let curName = document.getElementById("cur_name").value;
-    let curStart = document.getElementById("cur_start_time").value;
-    let curEnd = document.getElementById("cur_end_time").value;
-    let curOwner = document.getElementById("cur_owner").value;
-    // get the item from plan
-    let curItem = plan.items.get(parseInt(curID));
-    // update the current item
-    console.log(plan.items);
-    console.log(curID, typeof(parseInt(curID)));
-    curItem.name = curName;
-    curItem.start_time = parseInt(curStart);
-    curItem.end_time = parseInt(curEnd);
-    curItem.owner = curOwner;
-
-    plan.generateTable();
-    plan.draw();
-
-    document.getElementById("editing_page").style.visibility = "hidden";
-    document.getElementById("cur_id").value = -1;
-}
 function selectTheTime(){
     // console.log("test clicking the timebar");
     time = document.getElementById("timebar").value;
     // console.log("current time is ", time);
+    document.getElementById("showTimebar").innerText = `timebar:${time}`;
     plan.draw();
 }
 function selectTheScale(){
@@ -327,10 +451,6 @@ function selectTheScale(){
     canvas.width = canvasWidth * 50 / scale;
     canvas.height = canvasHeight * 50 / scale;
     plan.draw();
-}
-function showTime(){
-    let time = document.getElementById("timebar").value;
-    document.getElementById("showTimebar").innerText = `timebar:    ${time}`;
 }
 function dragstart_handler(ev) {
     if(editable == false){
@@ -340,7 +460,7 @@ function dragstart_handler(ev) {
     let id = dragdiv.id;
     offsetx = ev.clientX - dragdiv.getBoundingClientRect().left;
     offsety = ev.clientY - dragdiv.getBoundingClientRect().top;
-    if(dragdiv.getAttribute("class") == "items"){
+    if(dragdiv.classList.contains("sourceItems")){
         dragdiv.style.opacity = 0.5;
     }
     // update the dataTransfer
@@ -366,7 +486,7 @@ function drop_handler(ev) {
     ev.preventDefault();
     let id = ev.dataTransfer.getData("text");
     let dragDiv = document.getElementById(id);
-    if (dragDiv.getAttribute("class") == "sourceItems" && ev.target.id == "dest_copy") {
+    if (dragDiv.classList.contains("sourceItems") && ev.target.id == "dest_copy") {
         // copy an item and show it on the screen
         // "true" in parentheses ensures that the entire div is copied, including deeper elements
 
@@ -385,14 +505,27 @@ function drop_handler(ev) {
         current_item.pos_x = x * scale / 50;
         current_item.pos_y = y * scale / 50;
         current_item.type = dragDiv.id;
-        current_item.width = 30;
-        current_item.height = 40;
+        current_item.width = 60;
+        current_item.height = 30;
+        // console.log("kkkkk");
+        if(dragDiv.classList.contains("top")){
+            current_item.layer = "top";
+        }
+        if(dragDiv.classList.contains("furniture")){
+            current_item.layer = "furniture";
+        }
+        if(dragDiv.classList.contains("electrical")){
+            current_item.layer = "electrical";
+        }
+        if(dragDiv.classList.contains("staff")){
+            current_item.layer = "staff";
+        }
         plan.addItem(current_item);
         console.log("asss", plan.items);
         plan.generateTable();
         current_item.draw();
         // editing information
-        showEditingPage(current_item);
+        // showEditingPage(current_item);
         
         cnt++;
     }
@@ -416,16 +549,6 @@ function dragend_handler(ev) {
     // Remove all of the drag data
     ev.dataTransfer.clearData();
 }
-function showEditingPage(current_item){
-    document.getElementById("editing_page").style.visibility = "visible";
-    console.log(typeof(current_item));
-    document.getElementById("cur_id").value = current_item.item_id;
-    document.getElementById("cur_name").value = current_item.name;
-    document.getElementById("cur_start_time").value = current_item.start_time;
-    document.getElementById("cur_end_time").value = current_item.end_time;
-    document.getElementById("cur_owner").value = current_item.owner;
-
-}
 function rightClick(e){
     if(editable == false){
         return;
@@ -433,7 +556,8 @@ function rightClick(e){
     e.preventDefault();
     closeMenu();
     let menu = createMenu(e);
-    canvas.appendChild(menu);
+    // console.log(typeof(menu), "vvvvv");
+    document.getElementById("canvas_div").appendChild(menu);
 }
 // when clicking on any other space except the menu, the menu disappear
 document.addEventListener('click', function(e){
@@ -460,8 +584,9 @@ function closeMenu(){
 }
 
 function createMenu(e){
-    x = e.pageX;
-    y = e.pageY;
+    console.log("create menu");
+    x = e.clientX;
+    y = e.clientY;
     let newDiv = document.createElement("ul");
     newDiv.id = "deletionMenu";
     newDiv.setAttribute("class", "context-menu");
@@ -511,7 +636,8 @@ function decodeJSON(str){
     it1.owner = "chu";
     it1.width = 100;
     it1.height = 60;
-    it1.type = "rect";
+    it1.type = "couch";
+    it1.layer = "furniture";
 
     let it2 = new Item();
     it2.name = "chuxi";
@@ -522,9 +648,10 @@ function decodeJSON(str){
     it2.pos_x = 400;
     it2.pos_y = 300;
     it2.owner = "zhang";
-    it2.type = "triangle";
+    it2.type = "triangle_room";
     it2.width = 30;
     it2.height = 40;
+    it2.layer = "top";
 
     let it3 = new Item();
     it3.name = "zhang";
@@ -535,9 +662,10 @@ function decodeJSON(str){
     it3.pos_x = 280;
     it3.pos_y = 120;
     it3.owner = "youli";
-    it3.type = "circle";
-    it3.height = 15;
-    it3.width = 23;
+    it3.type = "round_room";
+    it3.height = 150;
+    it3.width = 150;
+    it3.layer = "top";
 
     plan.items.set(0, it1);
     plan.items.set(11, it2);

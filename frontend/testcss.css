@@ -1,5 +1,5 @@
 #dest_copy {
-    background: #ddd;
+    background: rgb(245, 245, 245);
     /* border: purple 5px solid; */
 }
 /* #deletionMenu {
@@ -12,7 +12,7 @@
     z-index: 1000;
     position: absolute;
     overflow: hidden;
-    border: 1px solid #CCC;
+    border: 1px solid rgb(204, 204, 204);
     white-space: nowrap;
     font-family: sans-serif;
     background: #FFF;
