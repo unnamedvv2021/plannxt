@@ -1,26 +1,18 @@
 #dest_copy {
-    width: 500px;
-    height: 300px;
-    border: purple 5px solid;
-}
-div{
-    display: flex;
-    padding:1ch;
+    background: rgb(245, 245, 245);
+    /* border: purple 5px solid; */
 }
 /* #deletionMenu {
     padding: 0;
     background-color: rgb(183, 186, 190);
     border: 1px;
 } */
-tr:hover{
-    background-color: rgb(207, 197, 197);
-}
 .context-menu {
     /* display: none; */
     z-index: 1000;
     position: absolute;
     overflow: hidden;
-    border: 1px solid #CCC;
+    border: 1px solid rgb(204, 204, 204);
     white-space: nowrap;
     font-family: sans-serif;
     background: #FFF;
