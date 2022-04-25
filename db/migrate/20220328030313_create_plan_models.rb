@@ -12,6 +12,8 @@ class CreatePlanModels < ActiveRecord::Migration[7.0]
       t.string :extra3
 
       t.timestamps
+      
+      add_index :plan_models, :creator
     end
   end
 end
