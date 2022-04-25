@@ -1,5 +1,7 @@
 class PlanModelsController < ApplicationController
   protect_from_forgery with: :null_session
+  before_action :require_user_logged_in!
+  
   def edit_page
     @plan_model = PlanModel.all
   end
@@ -27,7 +29,7 @@ class PlanModelsController < ApplicationController
     @plan_model = PlanModel.new(plan_model_data)
 
     if @plan_model.save
-      redirect_to @plan_model
+      redirect_to edit_page_path
     else
       render :new, status: :unprocessable_entity
     end
