@@ -49,7 +49,7 @@ dragGraph.prototype = {
         let res = this.context.isPointInPath(mouse.x, mouse.y);
         return res;
     },
-    
+
     shapeDraw: function () {
         if (this.graphShape == "rect_room"){
             // draw a rect room
@@ -125,7 +125,7 @@ canvas.addEventListener("mousedown", function (e) {
                     plan.items.get(id).pos_x = (mouse.x - offset.x) * scale / 50;
                     plan.items.get(id).pos_y = (mouse.y - offset.y) * scale / 50;
                     // drawGraph();
-                    
+
                     plan.draw();
                 }
             }, false);
@@ -166,6 +166,7 @@ class Item{
     owner;
     setup_time;
     breakdown_time;
+    finished;
     // type should be consistent with the id of the items in the repository shown in HTML
     type;
     pos_x;
@@ -174,7 +175,7 @@ class Item{
     width;
     length;
     constructor(){
-
+        this.finished = false;
     }
     //calculateExpression(value.start_time, value.item_id)
     draw(){
@@ -250,46 +251,63 @@ function drawItems(value, key, map){
 }
 function calculateExpression(expression, id){
   var numberRe = /^\d+$/i;
-  var startTimeRe = /^ts\d+\+\d+$/i;
-  var endTimeRe = /^te\d+\+\d+$/i;
+  var timeRe = /^t\d+\+\d+$/i;
+
   if(numberRe.test(expression)){
     return expression;
   }
-  else if (startTimeRe.test(expression)) {
+  else if (timeRe.test(expression)) {
     var matchedData = expression.match(/\d+/g);
     var parentId = matchedData[0];
     var offset = matchedData[1];
     // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
     // Self addition is not allowed. Example: TS11 = TS11 + 1.
-    if(parentId <= id && plan.items.get(parseInt(parentId)) && plan.items.get(parseInt(parentId)).start_time != expression){
+    if(parentId < id && plan.items.get(parseInt(parentId))){
       var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).start_time, parentId);
       if(numberRe.test(parentValue)){
         return parseInt(parentValue) + parseInt(offset);
       }
     }
   }
-  else if (endTimeRe.test(expression)) {
-    var matchedData = expression.match(/\d+/g);
-    var parentId = matchedData[0];
-    var offset = matchedData[1];
-    if(parentId < id && plan.items.get(parseInt(parentId))){
-      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).end_time, parentId);
-      if(numberRe.test(parentValue)){
-        return parseInt(parentValue) + parseInt(offset);
-      }
+
+  return 'Invalid!'
+}
+function calculateEndtime(expression, id){
+  var numberRe = /^\d+$/i;
+  console.log(expression);
+  if(numberRe.test(expression)){
+    var offset = expression;
+    var parentValue = calculateExpression(plan.items.get(id).start_time, id);
+    if(numberRe.test(parentValue)){
+      return parseInt(parentValue) + parseInt(offset);
     }
   }
   return 'Invalid!'
 }
 function generateTableItems(value, key, map){
-    let tr = `<tr>
+  var tr;
+  if(!value.finished){
+    tr = `<tr>
     <td class="data">${value.item_id}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${calculateExpression(value.start_time, value.item_id)}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateExpression(value.end_time, value.item_id)}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateEndtime(value.end_time, value.item_id)}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
+    <td class="data"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
     </tr>`;
-    $("#tableItemsBody").append(tr);
+  }
+  else{
+    tr = `<tr>
+    <td class="data" style="background-color:grey;">${value.item_id}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${calculateExpression(value.start_time, value.item_id)}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateEndtime(value.end_time, value.item_id)}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
+    <td class="data" style="background-color:grey;"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
+    </tr>`;
+  }
+  $("#tableItemsBody").append(tr);
+  document.getElementById(`checkbox_${value.item_id}`).checked = value.finished;
 }
 function clickToSelectTop(){
     // if top is currently selected
@@ -407,6 +425,12 @@ function clickToEditData(e, item_id, attr){
     // $("#editData").append(blank);
 
 }
+function clickToChangeState(e, item_id){
+    // console.log("uuuuu", e.currentTarget.getAttribute("class"));
+    let current_item = plan.items.get(parseInt(item_id));
+    current_item.finished = !current_item.finished;
+    plan.generateTable();
+}
 function changeData(e, id, attr){
     // console.log((e.value);
     let item = plan.items.get(id);
@@ -498,7 +522,7 @@ function drop_handler(ev) {
         // nodeCopy.setAttribute("onclick", "leftClick(event);")
         // ev.target.appendChild(nodeCopy);
 
-        
+
         // create a new item, then insert it into the plan and finally update the table
         let current_item = new Item();
         current_item.item_id = parseInt(cnt);
@@ -526,7 +550,7 @@ function drop_handler(ev) {
         current_item.draw();
         // editing information
         // showEditingPage(current_item);
-        
+
         cnt++;
     }
     // here is a bug, when the target location is outside of the "dest_copy" but still inside
