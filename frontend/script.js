@@ -283,12 +283,17 @@ canvas.addEventListener("contextmenu", function(e){
     });
     e.preventDefault();
 }, false);
+<<<<<<< HEAD
 function rightClick(e, mouse, id){
+=======
+function rightClick(e){
+>>>>>>> change frontend js scripts
     if(editable == false){
         return;
     }
     e.preventDefault();
     closeMenu();
+<<<<<<< HEAD
     let menu = createMenu(e, mouse, id);
     // console.log(typeof(menu), "vvvvv");
     document.getElementById("canvas_div").appendChild(menu);
@@ -300,17 +305,33 @@ function createMenu(e, mouse, id){
     x = mouse.x;
     y = mouse.y;
     console.log(x, y);
+=======
+    let menu = createMenu(e);
+    // console.log(typeof(menu), "vvvvv");
+    document.getElementById("canvas_div").appendChild(menu);
+}
+function createMenu(e){
+    console.log("create menu");
+    x = e.clientX;
+    y = e.clientY;
+>>>>>>> change frontend js scripts
     let newDiv = document.createElement("ul");
     newDiv.id = "deletionMenu";
     newDiv.setAttribute("class", "context-menu");
     newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
+<<<<<<< HEAD
     let sub1 = createOptionsInMenu(e, "delete", id, mouse);
     let sub2 = createOptionsInMenu(e, "edit", id, mouse);
+=======
+    let sub1 = createOptionsInMenu(e, "delete");
+    let sub2 = createOptionsInMenu(e, "edit");
+>>>>>>> change frontend js scripts
     newDiv.appendChild(sub1);
     newDiv.appendChild(sub2);
     return newDiv;
 }
 // str represents the text
+<<<<<<< HEAD
 function createOptionsInMenu(e, str, id, mouse){
     let opt = document.createElement("li");
     opt.textContent = str;
@@ -368,6 +389,25 @@ function submitEdit(id){
     plan.generateTable();
     plan.draw();
     document.getElementById("editingForm").remove();
+=======
+function createOptionsInMenu(e, str){
+    let opt = document.createElement("li");
+    opt.textContent = str;
+    let id = e.currentTarget.id;
+    opt.setAttribute("onclick", `${str}Item(${id});`);
+    return opt;
+}
+// select deletion
+function deleteItem(id){
+    console.log("complete deletion");
+    document.getElementById(id).remove();
+    console.log("yyyy",typeof(id))
+    plan.items.delete(id);
+    plan.generateTable();
+}
+function editItem(id){
+    showEditingPage(plan.items.get(id));
+>>>>>>> change frontend js scripts
 }
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
@@ -683,6 +723,7 @@ function clickToSave(e){
     editable = false;
     // communicate with the server
     let str = JSON.stringify(plan);
+<<<<<<< HEAD
     let sentObj = {
         "data":str
     }
@@ -690,13 +731,20 @@ function clickToSave(e){
 
     // server_plan_obj.data.data = str;
     // let server_plan_json = JSON.stringify(server_plan_obj);
+=======
+    server_plan_obj.data.data = str;
+    let server_plan_json = JSON.stringify(server_plan_obj);
+>>>>>>> change frontend js scripts
     // console.log(str);
     // console.log("-"*10);
     // console.log(server_plan_obj);
 
     let putRequest = new XMLHttpRequest();
     putRequest.open("put", server_url);
+<<<<<<< HEAD
     putRequest.setRequestHeader("Content-type", "application/json");
+=======
+>>>>>>> change frontend js scripts
     putRequest.onload = function(){
         if(putRequest.readyState == 4 && putRequest.status == 200){
             console.log("connection completed");
@@ -704,8 +752,12 @@ function clickToSave(e){
             console.log("error occurred");
         }
     }
+<<<<<<< HEAD
     console.log(sentJSON);
     putRequest.send(sentJSON);
+=======
+    putRequest.send(server_plan_json);
+>>>>>>> change frontend js scripts
     return;
 }
 function selectTheTime(){
@@ -865,13 +917,22 @@ function closeMenu(){
     }
 }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> change frontend js scripts
 // decode from JSON
 function decodeJSON(str){
     console.log(str);
     // update current cnt, it should be acquired from the JSON code
     let plan_obj = JSON.parse(str);
+<<<<<<< HEAD
     console.log(plan_obj);
     // plan = new Plan();
+=======
+    plan = new Plan();
+>>>>>>> change frontend js scripts
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
     // plan.items = new Map(Object.entries(plan_obj.items));
@@ -884,12 +945,17 @@ function decodeJSON(str){
         cur.item_id = cur_items[i].item_id;
         cur.layer = cur_items[i].layer;
         cur.name = cur_items[i].name;
+<<<<<<< HEAD
         //cur.start_time = new TimeExpression(cur_items[i].start_time);
         //cur.end_time = new TimeExpression(cur_items[i].end_time);
         cur.setup_start = new TimeExpression(cur_items[i].setup_start);
         cur.setup_duration = new TimeExpression(cur_items[i].setup_duration);
         cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start);
         cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration);
+=======
+        cur.start_time = cur_items[i].start_time;
+        cur.end_time = cur_items[i].end_time;
+>>>>>>> change frontend js scripts
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -899,7 +965,11 @@ function decodeJSON(str){
         cur.rotate = cur_items[i].rotate;
         cur.width = cur_items[i].width;
         cur.length = cur_items[i].length;
+<<<<<<< HEAD
         console.log(cur)
+=======
+        
+>>>>>>> change frontend js scripts
         plan.addItem(cur);
     }
     console.log(plan);
@@ -908,7 +978,11 @@ function decodeJSON(str){
 // get JSON from server
 
 function getJSON(){
+<<<<<<< HEAD
     // let str = new String();
+=======
+    let str = new String();
+>>>>>>> change frontend js scripts
     // get information from current url
     let location = window.location.href;
     // let's mock the location
@@ -924,6 +998,7 @@ function getJSON(){
     let getRequest = new XMLHttpRequest();
     server_url = "/plan_models_json/" + id;
     getRequest.open("get", server_url);
+<<<<<<< HEAD
     console.log("url:" + server_url)
     getRequest.send(null)
     getRequest.onload = function (){
@@ -935,20 +1010,38 @@ function getJSON(){
             console.log("target", server_plan_obj.data.data);
             console.log(server_plan_obj);
             // return server_plan_obj.data.data;
+=======
+    getRequest.send(null);
+    getRequest.onload = function (){
+        if(getRequest.status == 200){
+            server_plan_obj = JSON.parse(getRequest.responseText);
+            console.log(getRequest.responseText);
+            console.log("target", plan_obj.data.data);
+            return plan_obj.data.data;
+>>>>>>> change frontend js scripts
         }else{
             console.log("JSON: errors occurred");
         }
     }
+<<<<<<< HEAD
+=======
+    return str;
+>>>>>>> change frontend js scripts
 }
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
+<<<<<<< HEAD
 
     let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"couch\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":40,\"length\":40},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"triangle_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"length\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"rect_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"length\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
+=======
+    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":0,\"end_time\":10,\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":0,\"end_time\":16,\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":0,\"end_time\":18,\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
+>>>>>>> change frontend js scripts
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
     // console.log(JSON.parse(tmp));
     // call the interface from server
+<<<<<<< HEAD
     // getJSON();
     
     setTimeout(function(){
@@ -969,3 +1062,15 @@ window.onload = function(){
     }, 1000);
     
 }
+=======
+    // let plan_json = getJSON();
+    plan = decodeJSON(tmp);
+    // let json_plan = JSON.stringify(plan_obj);
+    // let out = new Plan();
+    // out = JSON.parse(JSON.parse(json_plan));
+    // console.log("cccccccccccc", json_plan);
+    console.log("bbbbbbbbbbbb", plan);
+    plan.draw();
+    plan.generateTable();
+}
+>>>>>>> change frontend js scripts
