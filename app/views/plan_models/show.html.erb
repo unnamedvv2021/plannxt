@@ -4,7 +4,7 @@
 
 <ul>
   <li><%= link_to "Edit raw data", edit_admin_path(@plan_model) %></li>
-  <li><%= link_to "Edit", edit_plan_model_path(@plan_model) %></li>
+  <li><%= link_to "Edit in draw panel", edit_plan_model_path(@plan_model) %></li>
   <li><%= link_to "Destroy", plan_model_path(@plan_model), data: {
                     turbo_method: :delete,
                     turbo_confirm: "Are you sure?"

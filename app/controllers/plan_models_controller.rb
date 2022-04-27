@@ -1,6 +1,6 @@
 class PlanModelsController < ApplicationController
   protect_from_forgery with: :null_session
-  before_action :require_user_logged_in!
+  #before_action :require_user_logged_in!
 
   def index
     logger.info Current.user.id
