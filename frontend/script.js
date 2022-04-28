@@ -10,6 +10,12 @@ let top_selected = true;
 let fur_selected = true;
 let elec_selected = true;
 let staff_selected = true;
+
+let breakdown_time = [
+    [12, 13],
+    [16, 18]
+];
+
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 // var canvas = document.getElementById("canvas");
@@ -165,7 +171,7 @@ class Item{
     end_time;
     owner;
     setup_time;
-    breakdown_time;
+    //breakdown_time;
     finished;
     // type should be consistent with the id of the items in the repository shown in HTML
     type;
@@ -179,7 +185,7 @@ class Item{
     }
     //calculateExpression(value.start_time, value.item_id)
     draw(){
-        if(calculateExpression(this.start_time, this.item_id) > time || calculateExpression(this.end_time, this.item_id) < time){
+        if(calculateExpression(this.start_time, this.item_id) > time || calculateEndtime(this.end_time, this.item_id) < time){
             return;
         }
         if((this.layer == "top" && !top_selected) || (this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
@@ -249,12 +255,40 @@ function drawItems(value, key, map){
     // console.log(value);
     value.draw();
 }
+function addBreakdownTime(parentValue, offset, breakdown_time_index){
+  if(offset == 0){
+    return parentValue;
+  }
+  if(breakdown_time_index >= breakdown_time.length){
+    return parentValue + offset;
+  }
+  if(breakdown_time[breakdown_time_index][0] < parentValue){
+    return addBreakdownTime(parentValue, offset, breakdown_time_index + 1);
+  }
+  var avaliable_time = breakdown_time[breakdown_time_index][0] - parentValue;
+  if(avaliable_time <= offset){
+    var breakdown_time_interval = breakdown_time[breakdown_time_index][1] - breakdown_time[breakdown_time_index][0];
+    return addBreakdownTime(parentValue + avaliable_time + breakdown_time_interval, offset -avaliable_time, breakdown_time_index + 1);
+  }
+  else{
+    return parentValue + offset;
+  }
+}
 function calculateExpression(expression, id){
   var numberRe = /^\d+$/i;
   var timeRe = /^t\d+\+\d+$/i;
 
   if(numberRe.test(expression)){
-    return expression;
+    var time_value = parseInt(expression);
+    var inside_break = false;
+    breakdown_time.forEach((element) => { if(time_value >= element[0] && time_value < element[1]) {inside_break = true} });
+    if(!inside_break){
+      return expression;
+    }
+    else {
+      plan.items.get(id).start_time = 'Invalid!';
+      alert("Current Start time is inside break down time!");
+    }
   }
   else if (timeRe.test(expression)) {
     var matchedData = expression.match(/\d+/g);
@@ -265,7 +299,8 @@ function calculateExpression(expression, id){
     if(parentId < id && plan.items.get(parseInt(parentId))){
       var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).start_time, parentId);
       if(numberRe.test(parentValue)){
-        return parseInt(parentValue) + parseInt(offset);
+        //return parseInt(parentValue) + parseInt(offset);
+        return addBreakdownTime(parseInt(parentValue), parseInt(offset), 0);
       }
     }
   }
@@ -279,7 +314,7 @@ function calculateEndtime(expression, id){
     var offset = expression;
     var parentValue = calculateExpression(plan.items.get(id).start_time, id);
     if(numberRe.test(parentValue)){
-      return parseInt(parentValue) + parseInt(offset);
+      return addBreakdownTime(parseInt(parentValue), parseInt(offset), 0);
     }
   }
   return 'Invalid!'
