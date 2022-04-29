@@ -94,6 +94,10 @@ dragGraph.prototype = {
     }
 }
 canvas.addEventListener("mousedown", function (e) {
+    // avoid right click moving
+    if(e.button == 1 || e.button == 2){
+        return;
+    }
     var mouse = {
         x: e.clientX - canvas.getBoundingClientRect().left,
         y: e.clientY - canvas.getBoundingClientRect().top
@@ -151,11 +155,57 @@ canvas.addEventListener("contextmenu", function(e){
         };
         if (shape.isMouseInGraph(mouse)) {
             closeMenu();
-            rightClick(e);
+            rightClick(e, mouse);
         }
     });
     e.preventDefault();
 }, false);
+function rightClick(e, mouse){
+    if(editable == false){
+        return;
+    }
+    e.preventDefault();
+    closeMenu();
+    let menu = createMenu(e, mouse);
+    // console.log(typeof(menu), "vvvvv");
+    document.getElementById("canvas_div").appendChild(menu);
+}
+function createMenu(e, mouse){
+    console.log("create menu");
+    // x = e.clientX;
+    // y = e.clientY;
+    x = mouse.x;
+    y = mouse.y;
+    console.log(x, y);
+    let newDiv = document.createElement("ul");
+    newDiv.id = "deletionMenu";
+    newDiv.setAttribute("class", "context-menu");
+    newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
+    let sub1 = createOptionsInMenu(e, "delete");
+    let sub2 = createOptionsInMenu(e, "edit");
+    newDiv.appendChild(sub1);
+    newDiv.appendChild(sub2);
+    return newDiv;
+}
+// str represents the text
+function createOptionsInMenu(e, str){
+    let opt = document.createElement("li");
+    opt.textContent = str;
+    let id = e.currentTarget.id;
+    opt.setAttribute("onclick", `${str}Item(${id});`);
+    return opt;
+}
+// select deletion
+function deleteItem(id){
+    console.log("complete deletion");
+    document.getElementById(id).remove();
+    console.log("yyyy",typeof(id))
+    plan.items.delete(id);
+    plan.generateTable();
+}
+function editItem(id){
+    showEditingPage(plan.items.get(id));
+}
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
     item_id;
@@ -199,7 +249,7 @@ class Item{
             this.strokeStyle = "red";
         }
         // console.log("thishishihsihs");
-        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.height * 50 / scale, this.strokeStyle, canvas, this.type);
+        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type);
         graphs.push(graph);
         graph.paint();
     }
@@ -451,14 +501,20 @@ function clickToSave(e){
     editable = false;
     // communicate with the server
     let str = JSON.stringify(plan);
-    server_plan_obj.data.data = str;
-    let server_plan_json = JSON.stringify(server_plan_obj);
+    let sentObj = {
+        "data":str
+    }
+    let sentJSON = JSON.stringify(sentObj);
+
+    // server_plan_obj.data.data = str;
+    // let server_plan_json = JSON.stringify(server_plan_obj);
     // console.log(str);
     // console.log("-"*10);
     // console.log(server_plan_obj);
 
     let putRequest = new XMLHttpRequest();
     putRequest.open("put", server_url);
+    putRequest.setRequestHeader("Content-type", "application/json");
     putRequest.onload = function(){
         if(putRequest.readyState == 4 && putRequest.status == 200){
             console.log("connection completed");
@@ -466,7 +522,7 @@ function clickToSave(e){
             console.log("error occurred");
         }
     }
-    putRequest.send(server_plan_json);
+    putRequest.send(sentJSON);
     return;
 }
 function selectTheTime(){
@@ -579,16 +635,7 @@ function dragend_handler(ev) {
     // Remove all of the drag data
     ev.dataTransfer.clearData();
 }
-function rightClick(e){
-    if(editable == false){
-        return;
-    }
-    e.preventDefault();
-    closeMenu();
-    let menu = createMenu(e);
-    // console.log(typeof(menu), "vvvvv");
-    document.getElementById("canvas_div").appendChild(menu);
-}
+
 // when clicking on any other space except the menu, the menu disappear
 document.addEventListener('click', function(e){
     // console.log(e.target.getAttribute("class"));
@@ -613,45 +660,13 @@ function closeMenu(){
     }
 }
 
-function createMenu(e){
-    console.log("create menu");
-    x = e.clientX;
-    y = e.clientY;
-    let newDiv = document.createElement("ul");
-    newDiv.id = "deletionMenu";
-    newDiv.setAttribute("class", "context-menu");
-    newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
-    let sub1 = createOptionsInMenu(e, "delete");
-    let sub2 = createOptionsInMenu(e, "edit");
-    newDiv.appendChild(sub1);
-    newDiv.appendChild(sub2);
-    return newDiv;
-}
-// str represents the text
-function createOptionsInMenu(e, str){
-    let opt = document.createElement("li");
-    opt.textContent = str;
-    let id = e.currentTarget.id;
-    opt.setAttribute("onclick", `${str}Item(${id});`);
-    return opt;
-}
-// select deletion
-function deleteItem(id){
-    console.log("complete deletion");
-    document.getElementById(id).remove();
-    console.log("yyyy",typeof(id))
-    plan.items.delete(id);
-    plan.generateTable();
-}
-function editItem(id){
-    showEditingPage(plan.items.get(id));
-}
+
 
 // decode from JSON
 function decodeJSON(str){
     // update current cnt, it should be acquired from the JSON code
     let plan_obj = JSON.parse(str);
-    plan = new Plan();
+    // plan = new Plan();
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
     // plan.items = new Map(Object.entries(plan_obj.items));
@@ -705,7 +720,7 @@ function getJSON(){
         if(getRequest.status == 200){
             server_plan_obj = JSON.parse(getRequest.responseText);
             console.log(getRequest.responseText);
-            console.log("target", plan_obj.data.data);
+            console.log("target", server_plan_obj.data.data);
             return plan_obj.data.data;
         }else{
             console.log("JSON: errors occurred");
@@ -716,13 +731,15 @@ function getJSON(){
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
+    
     let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":0,\"end_time\":10,\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":0,\"end_time\":16,\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":0,\"end_time\":18,\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
     // console.log(JSON.parse(tmp));
     // call the interface from server
-    let plan_json = getJSON();
-    plan = decodeJSON(plan_json);
+    // let plan_json = getJSON();
+    console.log(plan);
+    plan = decodeJSON(tmp);
     // let json_plan = JSON.stringify(plan_obj);
     // let out = new Plan();
     // out = JSON.parse(JSON.parse(json_plan));
