@@ -32,7 +32,7 @@ class TimeExpression {
   }
 
   calculateStartTime(){
-    var timeRe = /^\d{2}\/\d{2}\/\d{2}:\d{2}$/i;
+    var timeRe = /^\d{2}\/\d{2}\/\d+:\d{2}$/i;
     var relativeRe = /^t\d+\+\d+:\d{2}/i;
     if(timeRe.test(this.expression)){
       var matched_data = this.expression.match(/\d+/g);
@@ -526,6 +526,7 @@ function changeData(e, id, attr){
         item.owner = e.currentTarget.value;
     }
     plan.generateTable();
+    plan.draw();
     document.getElementById("editData").remove();
 }
 // button action
@@ -545,6 +546,7 @@ function selectTheTime(){
     // console.log("test clicking the timebar");
     let current_time = new TimeExpression();
     current_time.timebar_value = document.getElementById("timebar").value;
+    time = current_time.timebar_value;
     // console.log("current time is ", time);
     document.getElementById("showTimebar").innerText = `Plan Time: ${current_time.toDisplayTime()}`;
     plan.draw();
