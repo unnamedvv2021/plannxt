@@ -221,6 +221,9 @@ canvas.addEventListener("mousedown", function (e) {
             y: mouse.y - shape.y
         };
         if (shape.isMouseInGraph(mouse)) {
+            if((shape.graphShape == "rect_room" || shape.graphShape == "round_room" || shape.graphShape == "triangle_room") && !top_selected){
+                return;
+            }
             // console.log("cc");
             let id = shape.id;
             tempGraphArr.push(shape);
@@ -266,23 +269,27 @@ canvas.addEventListener("contextmenu", function(e){
             y: mouse.y - shape.y
         };
         if (shape.isMouseInGraph(mouse)) {
+            if((shape.graphShape == "rect_room" || shape.graphShape == "round_room" || shape.graphShape == "triangle_room") && !top_selected){
+                return;
+            }
+            // 
             closeMenu();
-            rightClick(e, mouse);
+            rightClick(e, mouse, shape.id);
         }
     });
     e.preventDefault();
 }, false);
-function rightClick(e, mouse){
+function rightClick(e, mouse, id){
     if(editable == false){
         return;
     }
     e.preventDefault();
     closeMenu();
-    let menu = createMenu(e, mouse);
+    let menu = createMenu(e, mouse, id);
     // console.log(typeof(menu), "vvvvv");
     document.getElementById("canvas_div").appendChild(menu);
 }
-function createMenu(e, mouse){
+function createMenu(e, mouse, id){
     console.log("create menu");
     // x = e.clientX;
     // y = e.clientY;
@@ -293,30 +300,31 @@ function createMenu(e, mouse){
     newDiv.id = "deletionMenu";
     newDiv.setAttribute("class", "context-menu");
     newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
-    let sub1 = createOptionsInMenu(e, "delete");
-    let sub2 = createOptionsInMenu(e, "edit");
+    let sub1 = createOptionsInMenu(e, "delete", id);
+    let sub2 = createOptionsInMenu(e, "edit", id);
     newDiv.appendChild(sub1);
     newDiv.appendChild(sub2);
     return newDiv;
 }
 // str represents the text
-function createOptionsInMenu(e, str){
+function createOptionsInMenu(e, str, id){
     let opt = document.createElement("li");
     opt.textContent = str;
-    let id = e.currentTarget.id;
     opt.setAttribute("onclick", `${str}Item(${id});`);
     return opt;
 }
 // select deletion
 function deleteItem(id){
     console.log("complete deletion");
-    document.getElementById(id).remove();
+    // document.getElementById(id).remove();
     console.log("yyyy",typeof(id))
     plan.items.delete(id);
     plan.generateTable();
+    plan.draw();
 }
 function editItem(id){
-    showEditingPage(plan.items.get(id));
+    // showEditingPage(plan.items.get(id));
+
 }
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
@@ -327,6 +335,11 @@ class Item{
     name;
     start_time;
     end_time;
+    // setup_start
+    // setup_duration
+    // breakdown_start
+    // breakdown_duration
+
     owner;
     setup_time;
     //breakdown_time;
@@ -346,7 +359,7 @@ class Item{
         if(this.start_time.timebar_value > time || this.end_time.timebar_value < time){
             return;
         }
-        if((this.layer == "top" && !top_selected) || (this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
+        if((this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
             return;
         }
         if(this.layer == "top"){
@@ -625,6 +638,7 @@ function clickToSave(e){
             console.log("error occurred");
         }
     }
+    console.log(sentJSON);
     putRequest.send(sentJSON);
     return;
 }
@@ -788,6 +802,8 @@ function decodeJSON(str){
         cur.name = cur_items[i].name;
         cur.start_time = new TimeExpression(cur_items[i].start_time);
         cur.end_time = new TimeExpression(cur_items[i].end_time);
+        // let obj = JSON.parse(cur_items[i].start_time);
+        // cur.start_time = new TimeExpression(obj.expression)
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -839,7 +855,7 @@ function getJSON(){
 // plan is a global variable
 window.onload = function(){
     
-    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":0,\"end_time\":10,\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":0,\"end_time\":16,\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":0,\"end_time\":18,\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
+    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
     // console.log(JSON.parse(tmp));
