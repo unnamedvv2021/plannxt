@@ -11,10 +11,116 @@ let fur_selected = true;
 let elec_selected = true;
 let staff_selected = true;
 
+class TimeExpression {
+  constructor(expression) {
+    if(expression){
+      this.expression = expression;
+    }
+    else {
+      this.expression = "Invalid";
+    }
+    this.timebar_value = -1.0;
+  }
+  toDisplayTime(){
+    if(this.timebar_value < 0){
+      return "Invalid";
+    }
+    let day_index = parseInt(this.timebar_value / 24);
+    let hours = parseInt(this.timebar_value - day_index * 24);
+    let minutes = Math.round((this.timebar_value - day_index * 24 - hours) * 60);
+    return date_list[day_index] + '/' +String("0" + hours).slice(-2) + ':' + String("0" + minutes).slice(-2);
+  }
+
+  calculateStartTime(){
+    var timeRe = /^\d{2}\/\d{2}\/\d{2}:\d{2}$/i;
+    var relativeRe = /^t\d+\+\d+:\d{2}/i;
+    if(timeRe.test(this.expression)){
+      var matched_data = this.expression.match(/\d+/g);
+      var day_string = this.expression.substring(0,5);
+      var hours = parseInt(matched_data[2]);
+      var minutes = parseFloat(matched_data[3]);
+      var day_index = -1;
+      for(let i = 0; i< date_list.length; i++){
+        if(day_string == date_list[i]){
+          day_index = i;
+          break;
+        }
+      }
+      if(day_index < 0 || hours > 24 || hours < 0 || minutes > 60 || minutes < 0){
+        this.timebar_value = -1.0;
+        return;
+      }
+      this.timebar_value = 24 * day_index + hours + minutes / 60.0;
+      //console.log("time bar value: ", this.timebar_value);
+      for(let i = 0; i< breakdown_time.length; i++){
+        if(this.timebar_value >= breakdown_time[i][0] && this.timebar_value < breakdown_time[i][1]){
+          alert("Current Start time is inside break down time!");
+          this.timebar_value = -1.0;
+        }
+      }
+      return;
+    }
+    else if (relativeRe.test(this.expression)) {
+      var matchedData = this.expression.match(/\d+/g);
+      var parentId = matchedData[0];
+      var offset = parseFloat(matchedData[1]) + parseFloat(matchedData[2]) / 60.0;
+      // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
+      // Self addition is not allowed. Example: TS11 = TS11 + 1.
+      if(plan.items.get(parseInt(parentId))){
+        var parentValue = plan.items.get(parseInt(parentId)).start_time.timebar_value;
+        if(parentValue >= 0){
+          this.timebar_value = addBreakdownTime(parentValue, offset, 0);
+          return;
+        }
+      }
+    }
+    this.timebar_value = -1.0;
+    return;
+  }
+  calculateEndTime(id){
+    var timeRe = /^\d+:\d{2}$/i;
+    if (timeRe.test(this.expression)){
+      var matchedData = this.expression.match(/\d+/g);
+      var parentId = id;
+      var offset = parseFloat(matchedData[0]) + parseFloat(matchedData[1]) / 60.0;
+      if(plan.items.get(parseInt(parentId))){
+        var parentValue = plan.items.get(parseInt(parentId)).start_time.timebar_value;
+        if(parentValue >= 0){
+          this.timebar_value = addBreakdownTime(parentValue, offset, 0);
+          return;
+        }
+      }
+    }
+    this.timebar_value = -1.0;
+    return;
+  }
+}
+
+function addBreakdownTime(parentValue, offset, breakdown_time_index){
+  if(offset == 0){
+    return parentValue;
+  }
+  if(breakdown_time_index >= breakdown_time.length){
+    return parentValue + offset;
+  }
+  if(breakdown_time[breakdown_time_index][0] < parentValue){
+    return addBreakdownTime(parentValue, offset, breakdown_time_index + 1);
+  }
+  var avaliable_time = breakdown_time[breakdown_time_index][0] - parentValue;
+  if(avaliable_time <= offset){
+    var breakdown_time_interval = breakdown_time[breakdown_time_index][1] - breakdown_time[breakdown_time_index][0];
+    return addBreakdownTime(parentValue + avaliable_time + breakdown_time_interval, offset -avaliable_time, breakdown_time_index + 1);
+  }
+  else{
+    return parentValue + offset;
+  }
+}
+
 let breakdown_time = [
     [12, 13],
     [16, 18]
 ];
+let date_list =["04/28","04/29","04/30","05/01"];
 
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
@@ -185,7 +291,7 @@ class Item{
     }
     //calculateExpression(value.start_time, value.item_id)
     draw(){
-        if(calculateExpression(this.start_time, this.item_id) > time || calculateEndtime(this.end_time, this.item_id) < time){
+        if(this.start_time.timebar_value > time || this.end_time.timebar_value < time){
             return;
         }
         if((this.layer == "top" && !top_selected) || (this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
@@ -246,6 +352,7 @@ class Plan{
         $("#tableItemsBody").remove();
         $("#tableItems").append("<tbody id='tableItemsBody'></tbody>");
         console.log("this is what i want ", plan.items);
+        this.items.forEach((element) => { element.start_time.calculateStartTime(); element.end_time.calculateEndTime(element.item_id); console.log("time calculation",element); });
         this.items.forEach(generateTableItems);
     }
 }
@@ -255,78 +362,14 @@ function drawItems(value, key, map){
     // console.log(value);
     value.draw();
 }
-function addBreakdownTime(parentValue, offset, breakdown_time_index){
-  if(offset == 0){
-    return parentValue;
-  }
-  if(breakdown_time_index >= breakdown_time.length){
-    return parentValue + offset;
-  }
-  if(breakdown_time[breakdown_time_index][0] < parentValue){
-    return addBreakdownTime(parentValue, offset, breakdown_time_index + 1);
-  }
-  var avaliable_time = breakdown_time[breakdown_time_index][0] - parentValue;
-  if(avaliable_time <= offset){
-    var breakdown_time_interval = breakdown_time[breakdown_time_index][1] - breakdown_time[breakdown_time_index][0];
-    return addBreakdownTime(parentValue + avaliable_time + breakdown_time_interval, offset -avaliable_time, breakdown_time_index + 1);
-  }
-  else{
-    return parentValue + offset;
-  }
-}
-function calculateExpression(expression, id){
-  var numberRe = /^\d+$/i;
-  var timeRe = /^t\d+\+\d+$/i;
-
-  if(numberRe.test(expression)){
-    var time_value = parseInt(expression);
-    var inside_break = false;
-    breakdown_time.forEach((element) => { if(time_value >= element[0] && time_value < element[1]) {inside_break = true} });
-    if(!inside_break){
-      return expression;
-    }
-    else {
-      plan.items.get(id).start_time = 'Invalid!';
-      alert("Current Start time is inside break down time!");
-    }
-  }
-  else if (timeRe.test(expression)) {
-    var matchedData = expression.match(/\d+/g);
-    var parentId = matchedData[0];
-    var offset = matchedData[1];
-    // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
-    // Self addition is not allowed. Example: TS11 = TS11 + 1.
-    if(parentId < id && plan.items.get(parseInt(parentId))){
-      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).start_time, parentId);
-      if(numberRe.test(parentValue)){
-        //return parseInt(parentValue) + parseInt(offset);
-        return addBreakdownTime(parseInt(parentValue), parseInt(offset), 0);
-      }
-    }
-  }
-
-  return 'Invalid!'
-}
-function calculateEndtime(expression, id){
-  var numberRe = /^\d+$/i;
-  console.log(expression);
-  if(numberRe.test(expression)){
-    var offset = expression;
-    var parentValue = calculateExpression(plan.items.get(id).start_time, id);
-    if(numberRe.test(parentValue)){
-      return addBreakdownTime(parseInt(parentValue), parseInt(offset), 0);
-    }
-  }
-  return 'Invalid!'
-}
 function generateTableItems(value, key, map){
   var tr;
   if(!value.finished){
     tr = `<tr>
     <td class="data">${value.item_id}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${calculateExpression(value.start_time, value.item_id)}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateEndtime(value.end_time, value.item_id)}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${value.start_time.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${value.end_time.toDisplayTime()}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
     <td class="data"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
     </tr>`;
@@ -335,8 +378,8 @@ function generateTableItems(value, key, map){
     tr = `<tr>
     <td class="data" style="background-color:grey;">${value.item_id}</td>
     <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${calculateExpression(value.start_time, value.item_id)}</td>
-    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateEndtime(value.end_time, value.item_id)}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${value.start_time.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${value.end_time.toDisplayTime()}</td>
     <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
     <td class="data" style="background-color:grey;"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
     </tr>`;
@@ -444,16 +487,16 @@ function clickToEditData(e, item_id, attr){
     }
     var dispalyText;
     if(attr == 'start_time'){
-      dispalyText = plan.items.get(item_id).start_time;
+      dispalyText = plan.items.get(item_id).start_time.expression;
     }
     else if (attr == 'end_time') {
-      dispalyText = plan.items.get(item_id).end_time;
+      dispalyText = plan.items.get(item_id).end_time.expression;
     }
     else {
       dispalyText = e.currentTarget.innerText;
     }
     $("#table").append(`<div id="editData" style="position: absolute; left: ${x - ox + 3 + table.scrollLeft}px; top: ${y - oy + 3 + table.scrollTop}px">
-    <input style="width:60px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
+    <input style="width:100px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
     </div>`);
     document.getElementById("blankInput").select();
     // let blank = `<input type="text" onchange="">`;
@@ -474,10 +517,10 @@ function changeData(e, id, attr){
         item.name = e.currentTarget.value;
     }
     if(attr == 'start_time'){
-        item.start_time = e.currentTarget.value;
+        item.start_time.expression = e.currentTarget.value;
     }
     if(attr == 'end_time'){
-        item.end_time = e.currentTarget.value;
+        item.end_time.expression = e.currentTarget.value;
     }
     if(attr == 'owner'){
         item.owner = e.currentTarget.value;
@@ -500,9 +543,10 @@ function clickToSave(e){
 }
 function selectTheTime(){
     // console.log("test clicking the timebar");
-    time = document.getElementById("timebar").value;
+    let current_time = new TimeExpression();
+    current_time.timebar_value = document.getElementById("timebar").value;
     // console.log("current time is ", time);
-    document.getElementById("showTimebar").innerText = `timebar:${time}`;
+    document.getElementById("showTimebar").innerText = `Plan Time: ${current_time.toDisplayTime()}`;
     plan.draw();
 }
 function selectTheScale(){
@@ -566,6 +610,8 @@ function drop_handler(ev) {
         current_item.type = dragDiv.id;
         current_item.width = 60;
         current_item.height = 30;
+        current_item.start_time = new TimeExpression();
+        current_item.end_time = new TimeExpression();
         // console.log("kkkkk");
         if(dragDiv.classList.contains("top")){
             current_item.layer = "top";
@@ -687,8 +733,8 @@ function decodeJSON(str){
     let it1 = new Item();
     it1.name = "weiwei";
     it1.item_id = 0;
-    it1.start_time = 0;
-    it1.end_time = 10;
+    it1.start_time = new TimeExpression("04/29/00:00");
+    it1.end_time = new TimeExpression("10:00");
     it1.type = "src_copy0";
     it1.pos_x = 80;
     it1.pos_y = 40;
@@ -701,8 +747,8 @@ function decodeJSON(str){
     let it2 = new Item();
     it2.name = "chuxi";
     it2.item_id = 11;
-    it2.start_time = 0;
-    it2.end_time = 16;
+    it2.start_time = new TimeExpression("04/30/08:00");
+    it2.end_time = new TimeExpression("10:00");
     it2.type = "src_copy2";
     it2.pos_x = 400;
     it2.pos_y = 300;
@@ -715,8 +761,8 @@ function decodeJSON(str){
     let it3 = new Item();
     it3.name = "zhang";
     it3.item_id = 14;
-    it3.start_time = 0;
-    it3.end_time = 18;
+    it3.start_time = new TimeExpression("05/01/10:00");
+    it3.end_time = new TimeExpression("12:00");
     it3.type = "src_copy1";
     it3.pos_x = 280;
     it3.pos_y = 120;
@@ -747,4 +793,5 @@ window.onload = function(){
     plan = decodeJSON(json);
     plan.draw();
     plan.generateTable();
+    selectTheTime();
 }
