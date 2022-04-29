@@ -1,4 +1,6 @@
 let cnt = 0;
+let server_plan_obj;
+let server_url;
 let x, y, offsetx, offsety;
 let canvas = document.getElementById("dest_copy");
 let editable = true;
@@ -317,11 +319,21 @@ class Item{
 }
 class Plan{
     items;
+    creator;
+    current_id;
     constructor(){
         // I use hashmap to store all the items to make sure the storage used is low and deleting and searching fast.
         // However, I still need to perform the sorting algorithm, I would prefer to generate a new array and then sort it by the required attribute
         // the time complexity is O(n + nlogn) = O(nlogn)
         this.items = new Map();
+    }
+    toJSON() {
+        var t = {
+            "items": Object.fromEntries(this.items),
+            "creator": this.creator,
+            "current_id": this.current_id,
+        }
+        return JSON.stringify(t);
     }
     addItem(item){
         let id = item.item_id;
@@ -537,9 +549,27 @@ function clickToEdit(e){
     return;
 }
 function clickToSave(e){
+    console.log("tttt");
     // location.reload(false);
     editable = false;
     // communicate with the server
+    let str = JSON.stringify(plan);
+    server_plan_obj.data.data = str;
+    let server_plan_json = JSON.stringify(server_plan_obj);
+    // console.log(str);
+    // console.log("-"*10);
+    // console.log(server_plan_obj);
+
+    let putRequest = new XMLHttpRequest();
+    putRequest.open("put", server_url);
+    putRequest.onload = function(){
+        if(putRequest.readyState == 4 && putRequest.status == 200){
+            console.log("connection completed");
+        }else{
+            console.log("error occurred");
+        }
+    }
+    putRequest.send(server_plan_json);
     return;
 }
 function selectTheTime(){
@@ -727,72 +757,84 @@ function editItem(id){
 // decode from JSON
 function decodeJSON(str){
     // update current cnt, it should be acquired from the JSON code
-    cnt = 16;
-    let plan = new Plan();
-    // decode the JSON
+    let plan_obj = JSON.parse(str);
+    plan = new Plan();
+    plan.creator = plan_obj.creator;
+    plan.current_id = plan_obj.current_id;
+    // plan.items = new Map(Object.entries(plan_obj.items));
 
-    // mock a plan
-    let it1 = new Item();
-    it1.name = "weiwei";
-    it1.item_id = 0;
-    it1.start_time = new TimeExpression("04/29/00:00");
-    it1.end_time = new TimeExpression("10:00");
-    it1.type = "src_copy0";
-    it1.pos_x = 80;
-    it1.pos_y = 40;
-    it1.owner = "chu";
-    it1.width = 100;
-    it1.height = 60;
-    it1.type = "couch";
-    it1.layer = "furniture";
+    let cur_items = plan_obj.items;
 
-    let it2 = new Item();
-    it2.name = "chuxi";
-    it2.item_id = 11;
-    it2.start_time = new TimeExpression("04/30/08:00");
-    it2.end_time = new TimeExpression("10:00");
-    it2.type = "src_copy2";
-    it2.pos_x = 400;
-    it2.pos_y = 300;
-    it2.owner = "zhang";
-    it2.type = "triangle_room";
-    it2.width = 30;
-    it2.height = 40;
-    it2.layer = "top";
+    // decode items
+    for(let i in cur_items){
+        let cur = new Item();
+        cur.item_id = cur_items[i].item_id;
+        cur.layer = cur_items[i].layer;
+        cur.name = cur_items[i].name;
+        cur.start_time = new TimeExpression(cur_items[i].start_time);
+        cur.end_time = new TimeExpression(cur_items[i].end_time);
+        cur.owner = cur_items[i].owner;
+        cur.setup_time = cur_items[i].setup_time;
+        cur.breakdown_time = cur_items[i].breakdown_time;
+        cur.type = cur_items[i].type;
+        cur.pos_x = cur_items[i].pos_x;
+        cur.pos_y = cur_items[i].pos_y;
+        cur.rotate = cur_items[i].rotate;
+        cur.width = cur_items[i].width;
+        cur.length = cur_items[i].length;
 
-    let it3 = new Item();
-    it3.name = "zhang";
-    it3.item_id = 14;
-    it3.start_time = new TimeExpression("05/01/10:00");
-    it3.end_time = new TimeExpression("12:00");
-    it3.type = "src_copy1";
-    it3.pos_x = 280;
-    it3.pos_y = 120;
-    it3.owner = "youli";
-    it3.type = "round_room";
-    it3.height = 150;
-    it3.width = 150;
-    it3.layer = "top";
-
-    plan.items.set(0, it1);
-    plan.items.set(11, it2);
-    plan.items.set(14, it3);
-    console.log("decodeJson " + plan.items.size);
+        plan.addItem(cur);
+    }
+    console.log(plan);
     return plan;
 }
 // get JSON from server
+
 function getJSON(){
     let str = new String();
-    // maybe calling the interface from the server
+    // get information from current url
+    let location = window.location.href;
+    // let's mock the location
+    // let location = "/plan_models_json/2";
+    console.log(location);
+    let i = location.lastIndexOf("\/");
+    location = location.substring(0, i);
+    let j = location.lastIndexOf("\/");
+    let id = location.substring(j + 1, i);
+    console.log(typeof(id), id);
+    // till now, we get the id number
+    // then we should launch the get request
+    let getRequest = new XMLHttpRequest();
+    server_url = "/plan_models_json/" + id;
+    getRequest.open("get", server_url);
+    getRequest.send(null);
+    getRequest.onload = function (){
+        if(getRequest.status == 200){
+            server_plan_obj = JSON.parse(getRequest.responseText);
+            console.log(getRequest.responseText);
+            console.log("target", plan_obj.data.data);
+            return plan_obj.data.data;
+        }else{
+            console.log("JSON: errors occurred");
+        }
+    }
     return str;
 }
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
+    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":0,\"end_time\":10,\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":0,\"end_time\":16,\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":0,\"end_time\":18,\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
-    let json = getJSON();
-    plan = decodeJSON(json);
+    // console.log(JSON.parse(tmp));
+    // call the interface from server
+    let plan_json = getJSON();
+    plan = decodeJSON(plan_json);
+    // let json_plan = JSON.stringify(plan_obj);
+    // let out = new Plan();
+    // out = JSON.parse(JSON.parse(json_plan));
+    // console.log("cccccccccccc", json_plan);
+    console.log("bbbbbbbbbbbb", plan);
     plan.draw();
     plan.generateTable();
     selectTheTime();
