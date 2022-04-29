@@ -290,8 +290,6 @@ function rightClick(e, mouse, id){
 }
 function createMenu(e, mouse, id){
     console.log("create menu");
-    // x = e.clientX;
-    // y = e.clientY;
     x = mouse.x;
     y = mouse.y;
     console.log(x, y);
@@ -322,7 +320,11 @@ function deleteItem(id){
     plan.draw();
 }
 function editItem(id){
-    // showEditingPage(plan.items.get(id));
+    // create an input form
+    let input_form = document.createElement("div");
+    
+}
+function createInputForm(id){
 
 }
 class Item{
@@ -351,6 +353,8 @@ class Item{
     rotate;
     width;
     length;
+    // user can add any description to an item
+    description;
     constructor(){
         this.finished = false;
     }
