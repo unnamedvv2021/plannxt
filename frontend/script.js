@@ -69,7 +69,7 @@ class TimeExpression {
       // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
       // Self addition is not allowed. Example: TS11 = TS11 + 1.
       if(plan.items.get(parseInt(parentId))){
-        var parentValue = plan.items.get(parseInt(parentId)).start_time.timebar_value;
+        var parentValue = plan.items.get(parseInt(parentId)).setup_start.timebar_value;
         if(parentValue >= 0){
           this.timebar_value = addBreakdownTime(parentValue, offset, 0);
           return;
@@ -79,14 +79,13 @@ class TimeExpression {
     this.timebar_value = -1.0;
     return;
   }
-  calculateEndTime(id){
+  calculateEndTime(parentTime){
     var timeRe = /^\d+:\d{2}$/i;
     if (timeRe.test(this.expression)){
       var matchedData = this.expression.match(/\d+/g);
-      var parentId = id;
       var offset = parseFloat(matchedData[0]) + parseFloat(matchedData[1]) / 60.0;
-      if(plan.items.get(parseInt(parentId))){
-        var parentValue = plan.items.get(parseInt(parentId)).start_time.timebar_value;
+      if(parentTime){
+        var parentValue = parentTime.timebar_value;
         if(parentValue >= 0){
           this.timebar_value = addBreakdownTime(parentValue, offset, 0);
           return;
@@ -272,7 +271,7 @@ canvas.addEventListener("contextmenu", function(e){
             if((shape.graphShape == "rect_room" || shape.graphShape == "round_room" || shape.graphShape == "triangle_room") && !top_selected){
                 return;
             }
-            // 
+            //
             closeMenu();
             rightClick(e, mouse, shape.id);
         }
@@ -323,10 +322,7 @@ function deleteItem(id){
     plan.draw();
 }
 function editItem(id){
-    // create an input form
-    let input_form = document.createElement("div");
-}
-function createInputForm(id){
+    // showEditingPage(plan.items.get(id));
 
 }
 class Item{
@@ -336,15 +332,16 @@ class Item{
     layer;
     // count_id;
     name;
-    start_time;
-    end_time;
-    // setup_start
-    // setup_duration
-    // breakdown_start
-    // breakdown_duration
+    //start_time;
+    //end_time;
+
+    setup_start
+    setup_duration
+    breakdown_start
+    breakdown_duration
 
     owner;
-    setup_time;
+    //setup_time;
     //breakdown_time;
     finished;
     // type should be consistent with the id of the items in the repository shown in HTML
@@ -354,14 +351,12 @@ class Item{
     rotate;
     width;
     length;
-    // user can add any description to an item
-    description;
     constructor(){
         this.finished = false;
     }
     //calculateExpression(value.start_time, value.item_id)
     draw(){
-        if(this.start_time.timebar_value > time || this.end_time.timebar_value < time){
+        if(this.setup_start.timebar_value > time || this.breakdown_duration.timebar_value < time){
             return;
         }
         if((this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
@@ -432,7 +427,12 @@ class Plan{
         $("#tableItemsBody").remove();
         $("#tableItems").append("<tbody id='tableItemsBody'></tbody>");
         console.log("this is what i want ", plan.items);
-        this.items.forEach((element) => { element.start_time.calculateStartTime(); element.end_time.calculateEndTime(element.item_id); console.log("time calculation",element); });
+        this.items.forEach((element) => {
+          element.setup_start.calculateStartTime();
+          element.setup_duration.calculateEndTime(element.setup_start);
+          element.breakdown_start.calculateEndTime(element.setup_start);
+          element.breakdown_duration.calculateEndTime(element.breakdown_start);
+         });
         this.items.forEach(generateTableItems);
     }
 }
@@ -448,8 +448,10 @@ function generateTableItems(value, key, map){
     tr = `<tr>
     <td class="data">${value.item_id}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${value.start_time.toDisplayTime()}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${value.end_time.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'setup_start')">${value.setup_start.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'setup_end')">${value.setup_duration.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_start')">${value.breakdown_start.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_end')">${value.breakdown_duration.toDisplayTime()}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
     <td class="data"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
     </tr>`;
@@ -458,8 +460,10 @@ function generateTableItems(value, key, map){
     tr = `<tr>
     <td class="data" style="background-color:grey;">${value.item_id}</td>
     <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${value.start_time.toDisplayTime()}</td>
-    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${value.end_time.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'setup_start')">${value.setup_start.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'setup_end')">${value.setup_duration.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_start')">${value.breakdown_start.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_end')">${value.breakdown_duration.toDisplayTime()}</td>
     <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
     <td class="data" style="background-color:grey;"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
     </tr>`;
@@ -566,11 +570,17 @@ function clickToEditData(e, item_id, attr){
         document.getElementById("editData").remove();
     }
     var dispalyText;
-    if(attr == 'start_time'){
-      dispalyText = plan.items.get(item_id).start_time.expression;
+    if(attr == 'setup_start'){
+      dispalyText = plan.items.get(item_id).setup_start.expression;
     }
-    else if (attr == 'end_time') {
-      dispalyText = plan.items.get(item_id).end_time.expression;
+    else if (attr == 'setup_end') {
+      dispalyText = plan.items.get(item_id).setup_duration.expression;
+    }
+    else if (attr == 'breakdown_start') {
+      dispalyText = plan.items.get(item_id).breakdown_start.expression;
+    }
+    else if (attr == 'breakdown_end') {
+      dispalyText = plan.items.get(item_id).breakdown_duration.expression;
     }
     else {
       dispalyText = e.currentTarget.innerText;
@@ -596,11 +606,17 @@ function changeData(e, id, attr){
     if(attr == 'name'){
         item.name = e.currentTarget.value;
     }
-    if(attr == 'start_time'){
-        item.start_time.expression = e.currentTarget.value;
+    if(attr == 'setup_start'){
+        item.setup_start.expression = e.currentTarget.value;
     }
-    if(attr == 'end_time'){
-        item.end_time.expression = e.currentTarget.value;
+    if(attr == 'setup_end'){
+        item.setup_duration.expression = e.currentTarget.value;
+    }
+    if(attr == 'breakdown_start'){
+        item.breakdown_start.expression = e.currentTarget.value;
+    }
+    if(attr == 'breakdown_end'){
+        item.breakdown_duration.expression = e.currentTarget.value;
     }
     if(attr == 'owner'){
         item.owner = e.currentTarget.value;
@@ -717,8 +733,10 @@ function drop_handler(ev) {
         current_item.type = dragDiv.id;
         current_item.width = 60;
         current_item.height = 30;
-        current_item.start_time = new TimeExpression();
-        current_item.end_time = new TimeExpression();
+        current_item.setup_start = new TimeExpression();
+        current_item.setup_duration = new TimeExpression();
+        current_item.breakdown_start = new TimeExpression();
+        current_item.breakdown_duration = new TimeExpression();
         // console.log("kkkkk");
         if(dragDiv.classList.contains("top")){
             current_item.layer = "top";
@@ -805,10 +823,12 @@ function decodeJSON(str){
         cur.item_id = cur_items[i].item_id;
         cur.layer = cur_items[i].layer;
         cur.name = cur_items[i].name;
-        cur.start_time = new TimeExpression(cur_items[i].start_time);
-        cur.end_time = new TimeExpression(cur_items[i].end_time);
-        // let obj = JSON.parse(cur_items[i].start_time);
-        // cur.start_time = new TimeExpression(obj.expression)
+        //cur.start_time = new TimeExpression(cur_items[i].start_time);
+        //cur.end_time = new TimeExpression(cur_items[i].end_time);
+        cur.setup_start = new TimeExpression(JSON.parse(cur_items[i].setup_start).expression);
+        cur.setup_duration = new TimeExpression(JSON.parse(cur_items[i].setup_duration).expression);
+        cur.breakdown_start = new TimeExpression(JSON.parse(cur_items[i].breakdown_start).expression);
+        cur.breakdown_duration = new TimeExpression(JSON.parse(cur_items[i].breakdown_duration).expression);
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -859,7 +879,7 @@ function getJSON(){
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
-    
+
     let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
