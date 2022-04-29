@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="testcss.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="font-awesome.css">
+</head>
+
+<body class="pace-done" data-new-gr-c-s-check-loaded="14.1056.0" data-gr-ext-installed>
+    <!-- <div> -->
+    <div class="pace  pace-inactive">
+        <div class="pace-progress" data-progress-text="100%" data-progress="99"
+            style="transform: translate3d(100%, 0px, 0px);">
+            <div class="pace-progress-inner"></div>
+        </div>
+        <div class="pace-activity"></div>
+    </div>
+    <nav class="navbar-default navbar-static-side">
+        <h1 style="color: cornsilk;" class="col-md-3">Plannxt</h1>
+    </nav>
+    <!-- buttons -->
+    <div id="page-wrapper" class="gray-bg dashbard-1">
+
+        <div id="inputs" class="row border-bottom">
+            <div id="buttons" class="navbar-header col-md-2 dashboard-header">
+                <button onclick="clickToEdit(event);">edit</button>
+                <button onclick="clickToSave(event);">save</button>
+            </div>
+            <div class="col-md-3 dashboard-header">
+                <label id="showTimebar" for="timebar">timebar:</label>
+                <input type="range" name="timebar" id="timebar" min="0" max="24" oninput="selectTheTime();" value="0">
+                <!-- <input type="number" id="showTimeBar" style="width: 40px; background-color:rgb(207, 197, 197);"
+                    readonly> -->
+            </div>
+            <div class="col-md-2 dashboard-header">
+                <label for="scale">scale: </label>
+                <input type="range" name="scale" id="scale" min="10" max="100" oninput="selectTheScale();" value="50">
+            </div>
+            <div class="col-md-5 dashboard-header">
+                <button id="top_selector" type="button" class="btn btn-outlined btn-success dim"
+                    onclick="clickToSelectTop();">Top</button>
+                <button id="furniture_selector" type="button" class="btn btn-outlined btn-warning dim"
+                    onclick="clickToSelectFurniture();">Furniture</button>
+                <button id="electrical_selector" type="button" class="btn btn-outlined btn-primary dim"
+                    onclick="clickToSelectElectrical();">Electrical</button>
+                <button id="staff_selector" type="button" class="btn btn-outlined btn-danger dim"
+                    onclick="clickToSelectStaff();">Staff</button>
+
+            </div>
+        </div>
+        <!-- canvas and picker -->
+        <div class="row border-bottom white-bg dashboard-header">
+            <div id="panel" class="row">
+                <!-- table -->
+                <div id="table" class="col-lg-4" style="max-height: 400px; max-width: 300px; overflow: scroll;">
+                    <table id="tableItems" border="1" cellspacing="0" class="table table-hover no-margins">
+                        <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>name</th>
+                                <th>setup_start</th>
+                                <th>setup_end</th>
+                                <th>breakdown_start</th>
+                                <th>breakdown_end</th>
+                                <th>owner</th>
+                                <th>finished</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableItemsBody">
+
+                        </tbody>
+                    </table>
+                </div>
+                <!-- canvas -->
+                <div id="canvas_div" class="canvas col-lg-6"
+                    style="max-height: 400px; max-width: 600px; overflow: scroll;" ondrop="drop_handler(event);" ,
+                    ondragover="dragover_handler(event);">
+                    <canvas id="dest_copy" height="1000px" width="1000px"></canvas>
+                </div>
+                <div id="source" class="col-lg-2"
+                    style="width: 23%; max-height: 400px; max-width: 600px; overflow: scroll;">
+                    <div class="ibox float-e-margins" id="top_layer_items">
+                        <div class="ibox-title border-bottom">
+                            <h5>Top Layer</h5>
+                        </div>
+                        <div class="ibox-content icons-box">
+                            <div class="infont col-md-4">
+                                <div class="sourceItems top" draggable="true" id="rect_room"
+                                    ondragstart="dragstart_handler(event);" ondragend="dragend_handler(event);"
+                                    style="height: 30px; vertical-align: middle; display: table-cell;">
+                                    <img src="pic/rectangular room.png" alt="rectangular room"
+                                        style="max-width: 100%; max-height: 100%;">
+                                </div>
+                                <div style="text-align: center;">rect room</div>
+                            </div>
+                            <div class="infont col-md-4">
+                                <div div class="sourceItems top" draggable="true" id="round_room"
+                                    ondragstart="dragstart_handler(event);" ondragend="dragend_handler(event);"
+                                    style="height: 30px; vertical-align: middle; display: table-cell;">
+                                    <img src="pic/round room.png" alt="round room"
+                                        style="max-width: 100%; max-height: 100%;">
+                                </div>
+                                <div style="text-align: center;">round room</div>
+                            </div>
+                            <div class="infont col-md-4">
+                                <div div class="sourceItems top" draggable="true" id="triangle_room"
+                                    ondragstart="dragstart_handler(event);" ondragend="dragend_handler(event);"
+                                    style="height: 30px; vertical-align: middle; display: table-cell;">
+                                    <img src="pic/triangle room.png" alt="traingle room"
+                                        style="max-width: 100%; max-height: 100%;">
+                                </div>
+                                <div style="text-align: center;">triangle room</div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <!-- every source element in the source should be assigned with class value as "sourceItems" -->
+                            <!-- it's used when telling whether we are selecting a source item or an exist item -->
+                            <!-- <div class="sourceItems" draggable="true" id="rect" ondragstart="dragstart_handler(event);"
+                                , ondragend="dragend_handler(event);">
+                                <img src="pic/猫1.jpg" height="50px" width="50px">
+                            </div>
+                            <div class="sourceItems" draggable="true" id="triangle"
+                                ondragstart="dragstart_handler(event);" , ondragend="dragend_handler(event);">
+                                <img src="pic/猫2.jpg" height="50px" width="50px">
+                            </div>
+                            <div class="sourceItems" draggable="true" id="circle"
+                                ondragstart="dragstart_handler(event);" , ondragend="dragend_handler(event);">
+                                <img src="pic/猫3.jpg" height="50px" width="50px">
+                            </div> -->
+                        </div>
+                    </div>
+                    <div class="ibox float-e-margins" id="furniture_layer_items">
+                        <div class="ibox-title border-bottom">
+                            <h5>Furniture Layer</h5>
+                        </div>
+                        <div class="ibox-content icons-box">
+                            <div class="infont col-md-4">
+                                <div class="sourceItems furniture" draggable="true" id="couch"
+                                    ondragstart="dragstart_handler(event);" ondragend="dragend_handler(event);"
+                                    style="height: 30px; vertical-align: middle; display: table-cell;">
+                                    <img src="pic/couch.png" alt="couch" style="max-width: 100%; max-height: 100%;">
+                                </div>
+                                <div style="text-align: center;">couch</div>
+
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                    <div class="ibox float-e-margins" id="electrical_layer_items">
+                        <div class="ibox-title border-bottom">
+                            <h5>Electrical Layer</h5>
+                        </div>
+                        <div class="ibox-content icons-box">
+                            <div class="infont col-md-4">
+                                <div class="sourceItems" draggable="true" id="couch"
+                                    ondragstart="dragstart_handler(event);" ondragend="dragend_handler(event);"
+                                    style="height: 30px; vertical-align: middle; display: table-cell;">
+                                    <img src="pic/rectangular room.png" alt="couch"
+                                        style="max-width: 100%; max-height: 100%;">
+                                </div>
+                                <div style="text-align: center;">couch</div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+
+                    </div>
+                    <div class="ibox float-e-margins" id="staff_layer_items">
+                        <div class="ibox-title border-bottom">
+                            <h5>Staff Layer</h5>
+                        </div>
+                        <div class="ibox-content icons-box">
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- <div id="editing_page" class="row" style="visibility: hidden;">
+            <label for="id">id: </label>
+            <input type="text" id="cur_id" name="id" readonly style="background-color: rgb(228, 226, 224);">
+            <label for="name">name: </label>
+            <input type="text" id="cur_name" name="name">
+            <label for="start_time">start_time: </label>
+            <input type="text" id="cur_start_time" name="start_time">
+            <label for="end_time">end_time: </label>
+            <input type="text" id="cur_end_time" name="end_time">
+            <label for="owner">owner: </label>
+            <input type="text" id="cur_owner" name="owner">
+            <button type="text" id="submission" name="submission" onclick="clickToSubmit();">submit</button>
+        </div> -->
+    </div>
+    <script src="script.js"></script>
+    <script src="jquery-3.6.0.min.js"></script>
+    <!-- <script src="inspinia.js"></script> -->
+    <script src="bootstrap.min.js"></script>
+    <!-- </div> -->
+</body>
+
+</html>
