@@ -6,8 +6,11 @@ class PasswordResetsController < ApplicationController
         # send mail
         PasswordMailer.with(user: @user).reset.deliver_later
         # deliver_later is provided by ActiveJob
+        redirect_to sign_in_path, notice: 'Please check your email to reset the password'
+      else
+        redirect_to password_reset_path, notice: 'Account not exist! Please check your email address'
       end
-      redirect_to root_path, notice: 'Please check your email to reset the password'
+      
     end
       
     def edit
