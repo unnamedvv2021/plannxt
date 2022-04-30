@@ -7,7 +7,7 @@ class RegistrationsController < ApplicationController
       @user = User.new(user_params)
       if @user.save
         # deliver_now is provided by ActiveJob.
-        WelcomeMailer.with(user: @user).welcome_email.deliver_now
+        # WelcomeMailer.with(user: @user).welcome_email.deliver_now
         
         # stores saved user id in a session
         session[:user_id] = @user.id
