@@ -13,6 +13,7 @@ let fur_selected = true;
 let elec_selected = true;
 let staff_selected = true;
 let defaultSize = new Map();
+let selected_icon_id = -1;
 defaultSize.set("rect_room", [40, 40]);
 defaultSize.set("round_room", [40, 40]);
 defaultSize.set("triangle_room", [40, 40]);
@@ -138,12 +139,13 @@ var graphs = [];
 
 // ];
 var tempGraphArr = [];
-dragGraph = function (id, x, y, w, h, strokeStyle, canvas, graphShape) {
+dragGraph = function (id, x, y, w, h, strokeStyle, canvas, graphShape, rotate) {
     this.id = id;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    this.rotate = rotate;
     this.strokeStyle = strokeStyle || "rgba(26, 188, 156, 1)";
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
@@ -168,41 +170,83 @@ dragGraph.prototype = {
     },
 
     shapeDraw: function () {
+        let ctx = this.context;
         if (this.graphShape == "rect_room"){
+            // first save the ctx
+            ctx.save();
+            // then translate to the new center
+            ctx.translate(this.x, this.y);
+            // rotate canvas
+            ctx.rotate(this.rotate * Math.PI / 180);
+            // come back
+            ctx.translate(-this.x, -this.y);
             // draw a rect room
-            this.context.rect(this.x-this.w/2, this.y-this.h/2, this.w, this.h);
-            this.context.setLineDash([3, 6]);
-            this.context.stroke();
-            this.context.closePath();
+            ctx.rect(this.x-this.w/2, this.y-this.h/2, this.w, this.h);
+            ctx.setLineDash([3, 6]);
+            ctx.stroke();
+            ctx.closePath();
+            // restore
+            ctx.restore();
         }
         else if (this.graphShape == "round_room"){
+            // save the ctx
+            ctx.save();
+            // translate
+            ctx.translate(this.x, this.y);
+            // rotate
+            ctx.rotate(this.rotate * Math.PI / 180);
+            // tranlate back
+            ctx.translate(-this.x, -this.y);
             // draw a round room
-            this.context.arc(this.x, this.y, this.w/2, 0, Math.PI * 2);
-            this.context.setLineDash([3, 6]);
-            this.context.stroke();
-            this.context.closePath();
+            ctx.arc(this.x, this.y, this.w/2, 0, Math.PI * 2);
+            ctx.setLineDash([3, 6]);
+            ctx.stroke();
+            ctx.closePath();
+            // restore
+            ctx.restore();
         }
         else if (this.graphShape == "triangle_room"){
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotate * Math.PI / 180);
+            ctx.translate(-this.x, -this.y);
+        
             // draw a triangle room
-            this.context.moveTo(this.x, this.y - 40 * 50 / scale);
-            this.context.lineTo(this.x + 50 * 50 / scale, this.y + 40 * 50 / scale);
-            this.context.lineTo(this.x - 50 * 50 / scale, this.y + 40 * 50 / scale);
-            this.context.closePath();
-            this.context.setLineDash([3, 6]);
-            this.context.stroke();
+            ctx.moveTo(this.x, this.y - this.h / 2);
+            ctx.lineTo(this.x + this.w / 2, this.y + this.h / 2);
+            ctx.lineTo(this.x - this.w / 2, this.y + this.h / 2);
+            ctx.closePath();
+            ctx.setLineDash([3, 6]);
+            ctx.stroke();
+            ctx.restore();
         }
         else if (this.graphShape == "couch"){
-            console.log(this.w, this.h);
-            let ctx = this.context;
+            // console.log(this.w, this.h);
+            // first save the ctx
+            ctx.save();
+            // then translate the rotating center to the icon center
+            ctx.translate(this.x, this.y);
+            // console.log("translate to a new center", this.x, this.y);
+            // then rotate the canvas
+            ctx.rotate(this.rotate * Math.PI / 180);
+            // come back to the origin center
+            ctx.translate(-this.x, -this.y);
+            // then draw the icon
             ctx.setLineDash([1, 0]);
             ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + this.w / 2 * 50/scale, this.y);
-            ctx.lineTo(this.x + this.w / 2 * 50/scale, this.y + this.h / 2 * 50/scale);
-            ctx.lineTo(this.x - this.w / 2 * 50/scale, this.y + this.h / 2 * 50/scale);
-            ctx.lineTo(this.x - this.w / 2 * 50/scale, this.y - this.h / 2 * 50/scale);
-            ctx.lineTo(this.x, this.y - this.h / 2 * 50/scale);
+            ctx.lineTo(this.x + this.w / 2, this.y);
+            ctx.lineTo(this.x + this.w / 2, this.y + this.h / 2);
+            ctx.lineTo(this.x - this.w / 2, this.y + this.h / 2);
+            ctx.lineTo(this.x - this.w / 2, this.y - this.h / 2);
+            ctx.lineTo(this.x, this.y - this.h / 2);
             ctx.closePath();
             ctx.stroke();
+            // restore to the original status
+            ctx.restore();
+        }
+        if(shape.id == selected_icon_id){
+            ctx.fillStyle = 'orange';
+            ctx.fill();
         }
     },
     erase: function () {
@@ -218,6 +262,7 @@ canvas.addEventListener("mousedown", function (e) {
         x: e.clientX - canvas.getBoundingClientRect().left,
         y: e.clientY - canvas.getBoundingClientRect().top
     };
+    console.log("mouse position ssssss", mouse.x, mouse.y);
     // "shape" here represents the object of dragGraph
     graphs.forEach(function (shape) {
         var offset = {
@@ -344,6 +389,10 @@ function editItem(id, mouse_x, mouse_y){
             <div>
                 <input type="text" name="description" id="editingDescription" value="${curItem.description}">
             </div>
+            <label for="rotate">rotate</label>
+            <div>
+                <input type="text" name="rotate" id="editingRotate" value="${curItem.rotate}"></input>
+            </div>
         </div>
         <div class="">
             <button class="btn btn-white" type="submit" onclick="cancelEdit()">cancel</button>
@@ -360,12 +409,14 @@ function submitEdit(id){
     let newWidth = document.getElementById("editingWidth").value;
     let newLength = document.getElementById("editingLength").value;
     let newDescription = document.getElementById("editingDescription").value;
+    let newRotate = document.getElementById("editingRotate").value;
     let curItem = plan.items.get(parseInt(id));
     console.log("new stafffssss", newWidth, newLength, newDescription);
     curItem.width = newWidth;
     curItem.length = newLength;
     curItem.description = newDescription;
     console.log(curItem);
+    curItem.rotate = newRotate;
     plan.generateTable();
     plan.draw();
     document.getElementById("editingForm").remove();
@@ -421,7 +472,7 @@ class Item{
             this.strokeStyle = "red";
         }
         // console.log("thishishihsihs");
-        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type);
+        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type, this.rotate);
         graphs.push(graph);
         graph.paint();
     }
@@ -601,6 +652,7 @@ function clickToSelectStaff(){
     }
 }
 function clickToEditData(e, item_id, attr){
+    selected_icon_id = item_id;
     // console.log("uuuuu", e.currentTarget.getAttribute("class"));
     let current_item = plan.items.get(parseInt(item_id));
     let table = document.getElementById("table");
@@ -848,6 +900,7 @@ document.addEventListener('click', function(e){
     // }
     console.log(e.target.id);
     if(e.target.getAttribute("class") != "data" && document.getElementById("editData") && e.target.id != "blankInput"){
+        selected_icon_id = -1;
         document.getElementById("editData").remove();
     }
     closeMenu();
