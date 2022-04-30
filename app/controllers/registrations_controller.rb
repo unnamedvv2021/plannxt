@@ -11,9 +11,9 @@ class RegistrationsController < ApplicationController
         
         # stores saved user id in a session
         session[:user_id] = @user.id
-        redirect_to sign_in_path, notice: 'Successfully created account'
+        redirect_to sign_in_path, notice: 'Successfully created account!'
       else
-        render :new
+        redirect_to sign_up_path, notice: 'Create account failed, please check your input!'
       end
     end
     private

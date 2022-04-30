@@ -99,7 +99,7 @@ class PlanModelsController < ApplicationController
   def edit
     @plan_model = PlanModel.find(params[:id])
     #render inline: File.read('frontend/Untitled-1.html')
-    render file: 'frontend/Untitled-1.html', layout: false
+    render file: 'frontend/drawPanel.html', layout: false
   end
   
   def update
