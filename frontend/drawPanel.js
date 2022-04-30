@@ -138,12 +138,13 @@ var graphs = [];
 
 // ];
 var tempGraphArr = [];
-dragGraph = function (id, x, y, w, h, strokeStyle, canvas, graphShape) {
+dragGraph = function (id, x, y, w, h, strokeStyle, canvas, graphShape, rotate) {
     this.id = id;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    this.rotate = rotate;
     this.strokeStyle = strokeStyle || "rgba(26, 188, 156, 1)";
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
@@ -194,15 +195,27 @@ dragGraph.prototype = {
         else if (this.graphShape == "couch"){
             console.log(this.w, this.h);
             let ctx = this.context;
+            // first save the ctx
+            ctx.save();
+            // then translate the rotating center to the icon center
+            ctx.translate(this.x, this.y);
+            console.log("translate to a new center", this.x, this.y);
+            // then rotate the canvas
+            ctx.rotate(this.rotate * Math.PI / 180);
+            // come back to the origin center
+            ctx.translate(-this.x, -this.y);
+            // then draw the icon
             ctx.setLineDash([1, 0]);
             ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + this.w / 2 * 50/scale, this.y);
-            ctx.lineTo(this.x + this.w / 2 * 50/scale, this.y + this.h / 2 * 50/scale);
-            ctx.lineTo(this.x - this.w / 2 * 50/scale, this.y + this.h / 2 * 50/scale);
-            ctx.lineTo(this.x - this.w / 2 * 50/scale, this.y - this.h / 2 * 50/scale);
-            ctx.lineTo(this.x, this.y - this.h / 2 * 50/scale);
+            ctx.lineTo(this.x + this.w / 2, this.y);
+            ctx.lineTo(this.x + this.w / 2, this.y + this.h / 2);
+            ctx.lineTo(this.x - this.w / 2, this.y + this.h / 2);
+            ctx.lineTo(this.x - this.w / 2, this.y - this.h / 2);
+            ctx.lineTo(this.x, this.y - this.h / 2);
             ctx.closePath();
             ctx.stroke();
+            // restore to the original status
+            ctx.restore();
         }
     },
     erase: function () {
@@ -218,6 +231,7 @@ canvas.addEventListener("mousedown", function (e) {
         x: e.clientX - canvas.getBoundingClientRect().left,
         y: e.clientY - canvas.getBoundingClientRect().top
     };
+    console.log("mouse position ssssss", mouse.x, mouse.y);
     // "shape" here represents the object of dragGraph
     graphs.forEach(function (shape) {
         var offset = {
@@ -344,6 +358,10 @@ function editItem(id, mouse_x, mouse_y){
             <div>
                 <input type="text" name="description" id="editingDescription" value="${curItem.description}">
             </div>
+            <label for="rotate">rotate</label>
+            <div>
+                <input type="text" name="rotate" id="editingRotate" value="${curItem.rotate}"></input>
+            </div>
         </div>
         <div class="">
             <button class="btn btn-white" type="submit" onclick="cancelEdit()">cancel</button>
@@ -360,12 +378,14 @@ function submitEdit(id){
     let newWidth = document.getElementById("editingWidth").value;
     let newLength = document.getElementById("editingLength").value;
     let newDescription = document.getElementById("editingDescription").value;
+    let newRotate = document.getElementById("editingRotate").value;
     let curItem = plan.items.get(parseInt(id));
     console.log("new stafffssss", newWidth, newLength, newDescription);
     curItem.width = newWidth;
     curItem.length = newLength;
     curItem.description = newDescription;
     console.log(curItem);
+    curItem.rotate = newRotate;
     plan.generateTable();
     plan.draw();
     document.getElementById("editingForm").remove();
@@ -421,7 +441,7 @@ class Item{
             this.strokeStyle = "red";
         }
         // console.log("thishishihsihs");
-        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type);
+        let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type, this.rotate);
         graphs.push(graph);
         graph.paint();
     }
