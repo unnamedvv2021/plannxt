@@ -30,7 +30,7 @@ class PlanModelsController < ApplicationController
     end
     new_paras = plan_model_data
     if params[:plan_model].key?("day1_date")
-      new_paras[:extra1] = {"day1_date" => params[:plan_model].delete(:day1_date),
+      extra1_dict = {"day1_date" => params[:plan_model].delete(:day1_date),
                                       "day1_hour1" => params[:plan_model].delete(:day1_hour1),
                                       "day1_hour2" => params[:plan_model].delete(:day1_hour2),
                                       "day1_hour3" => params[:plan_model].delete(:day1_hour3),
@@ -64,7 +64,7 @@ class PlanModelsController < ApplicationController
                                       
       }
     end
-
+    new_paras[:extra1] = extra1_dict.to_json
     logger.info "After fix:"
     logger.info new_paras
     return new_paras
