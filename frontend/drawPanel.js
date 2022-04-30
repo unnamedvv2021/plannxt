@@ -244,10 +244,10 @@ dragGraph.prototype = {
             // restore to the original status
             ctx.restore();
         }
-        if(shape.id == selected_icon_id){
-            ctx.fillStyle = 'orange';
-            ctx.fill();
-        }
+        // if(this.id == selected_icon_id){
+        //     ctx.fillStyle = 'orange';
+        //     ctx.fill();
+        // }
     },
     erase: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
