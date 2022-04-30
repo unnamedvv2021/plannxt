@@ -283,22 +283,12 @@ canvas.addEventListener("contextmenu", function(e){
     });
     e.preventDefault();
 }, false);
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
 function rightClick(e, mouse, id){
-=======
-function rightClick(e){
->>>>>>> change frontend js scripts
-=======
-function rightClick(e, mouse, id){
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     if(editable == false){
         return;
     }
     e.preventDefault();
     closeMenu();
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
     let menu = createMenu(e, mouse, id);
     // console.log(typeof(menu), "vvvvv");
     document.getElementById("canvas_div").appendChild(menu);
@@ -310,50 +300,17 @@ function createMenu(e, mouse, id){
     x = mouse.x;
     y = mouse.y;
     console.log(x, y);
-=======
-    let menu = createMenu(e);
-=======
-    let menu = createMenu(e, mouse, id);
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
-    // console.log(typeof(menu), "vvvvv");
-    document.getElementById("canvas_div").appendChild(menu);
-}
-function createMenu(e, mouse, id){
-    console.log("create menu");
-<<<<<<< HEAD:frontend/script.js
-    x = e.clientX;
-    y = e.clientY;
->>>>>>> change frontend js scripts
-=======
-    // x = e.clientX;
-    // y = e.clientY;
-    x = mouse.x;
-    y = mouse.y;
-    console.log(x, y);
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     let newDiv = document.createElement("ul");
     newDiv.id = "deletionMenu";
     newDiv.setAttribute("class", "context-menu");
     newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
     let sub1 = createOptionsInMenu(e, "delete", id, mouse);
     let sub2 = createOptionsInMenu(e, "edit", id, mouse);
-=======
-    let sub1 = createOptionsInMenu(e, "delete");
-    let sub2 = createOptionsInMenu(e, "edit");
->>>>>>> change frontend js scripts
-=======
-    let sub1 = createOptionsInMenu(e, "delete", id, mouse);
-    let sub2 = createOptionsInMenu(e, "edit", id, mouse);
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     newDiv.appendChild(sub1);
     newDiv.appendChild(sub2);
     return newDiv;
 }
 // str represents the text
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
 function createOptionsInMenu(e, str, id, mouse){
     let opt = document.createElement("li");
     opt.textContent = str;
@@ -369,72 +326,6 @@ function deleteItem(id, mouse_x, mouse_y){
     plan.generateTable();
     plan.draw();
 }
-function editItem(id, mouse_x, mouse_y){
-    let curItem = plan.items.get(id);
-    // showEditingPage(plan.items.get(id));
-    let inputForm = `
-    <div class="col-sm-4 context-menu" id="editingForm" style="position: absolute; left:${mouse_x}px; top:${mouse_y}px">
-        <div class="form-group">
-            <label for="width">width</label>
-            <div> 
-                <input type="text" name="width" id="editingWidth" value="${curItem.width}" >
-            </div>
-            <label for="length">length</label>
-            <div>
-                <input type="text" name="length" id="editingLength" value="${curItem.length}">
-            </div>
-            <label for="description">description</label>
-            <div>
-                <input type="text" name="description" id="editingDescription" value="${curItem.description}">
-            </div>
-        </div>
-        <div class="">
-            <button class="btn btn-white" type="submit" onclick="cancelEdit()">cancel</button>
-            <button class="btn btn-primary" type="submit" onclick="submitEdit(${id})">submit</button>
-        </div>
-    </div>`;
-    $("#canvas_div").append(inputForm);
-}
-function cancelEdit(){
-    document.getElementById("editingForm").remove();
-}
-function submitEdit(id){
-    console.log("idddd", id);
-    let newWidth = document.getElementById("editingWidth").value;
-    let newLength = document.getElementById("editingLength").value;
-    let newDescription = document.getElementById("editingDescription").value;
-    let curItem = plan.items.get(parseInt(id));
-    console.log("new stafffssss", newWidth, newLength, newDescription);
-    curItem.width = newWidth;
-    curItem.length = newLength;
-    curItem.description = newDescription;
-    plan.generateTable();
-    plan.draw();
-    document.getElementById("editingForm").remove();
-=======
-function createOptionsInMenu(e, str){
-=======
-function createOptionsInMenu(e, str, id, mouse){
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
-    let opt = document.createElement("li");
-    opt.textContent = str;
-    opt.setAttribute("onclick", `${str}Item(${id}, ${mouse.x}, ${mouse.y});`);
-    return opt;
-}
-// select deletion
-function deleteItem(id, mouse_x, mouse_y){
-    console.log("complete deletion");
-    // document.getElementById(id).remove();
-    console.log("yyyy",typeof(id))
-    plan.items.delete(id);
-    plan.generateTable();
-    plan.draw();
-}
-<<<<<<< HEAD:frontend/script.js
-function editItem(id){
-    showEditingPage(plan.items.get(id));
->>>>>>> change frontend js scripts
-=======
 function editItem(id, mouse_x, mouse_y){
     let curItem = plan.items.get(id);
     // showEditingPage(plan.items.get(id));
@@ -478,7 +369,6 @@ function submitEdit(id){
     plan.generateTable();
     plan.draw();
     document.getElementById("editingForm").remove();
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
 }
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
@@ -728,17 +618,10 @@ function clickToEditData(e, item_id, attr){
     var dispalyText;
     if(attr == 'setup_start'){
       dispalyText = plan.items.get(item_id).setup_start.expression;
-<<<<<<< HEAD:frontend/script.js
     }
     else if (attr == 'setup_end') {
       dispalyText = plan.items.get(item_id).setup_duration.expression;
     }
-=======
-    }
-    else if (attr == 'setup_end') {
-      dispalyText = plan.items.get(item_id).setup_duration.expression;
-    }
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     else if (attr == 'breakdown_start') {
       dispalyText = plan.items.get(item_id).breakdown_start.expression;
     }
@@ -802,10 +685,6 @@ function clickToSave(e){
     plan.current_id = cnt;
     // communicate with the server
     let str = JSON.stringify(plan);
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
-=======
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     let sentObj = {
         "data":str
     }
@@ -813,27 +692,13 @@ function clickToSave(e){
 
     // server_plan_obj.data.data = str;
     // let server_plan_json = JSON.stringify(server_plan_obj);
-<<<<<<< HEAD:frontend/script.js
-=======
-    server_plan_obj.data.data = str;
-    let server_plan_json = JSON.stringify(server_plan_obj);
->>>>>>> change frontend js scripts
-=======
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     // console.log(str);
     // console.log("-"*10);
     // console.log(server_plan_obj);
 
     let putRequest = new XMLHttpRequest();
     putRequest.open("put", server_url);
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
     putRequest.setRequestHeader("Content-type", "application/json");
-=======
->>>>>>> change frontend js scripts
-=======
-    putRequest.setRequestHeader("Content-type", "application/json");
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     putRequest.onload = function(){
         if(putRequest.readyState == 4 && putRequest.status == 200){
             console.log("connection completed");
@@ -841,17 +706,8 @@ function clickToSave(e){
             console.log("error occurred");
         }
     }
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
     console.log(sentJSON);
     putRequest.send(sentJSON);
-=======
-    putRequest.send(server_plan_json);
->>>>>>> change frontend js scripts
-=======
-    console.log(sentJSON);
-    putRequest.send(sentJSON);
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     return;
 }
 function selectTheTime(){
@@ -915,11 +771,7 @@ function drop_handler(ev) {
         // nodeCopy.setAttribute("onclick", "leftClick(event);")
         // ev.target.appendChild(nodeCopy);
 
-<<<<<<< HEAD:frontend/script.js
-
-=======
         console.log("finish")
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
         // create a new item, then insert it into the plan and finally update the table
         let current_item = new Item();
         current_item.name = dragDiv.id;
@@ -930,10 +782,7 @@ function drop_handler(ev) {
         // current_item.width = 100;
         current_item.width = defaultSize.get(dragDiv.id)[0];
         current_item.length = defaultSize.get(dragDiv.id)[1];
-<<<<<<< HEAD:frontend/script.js
-=======
         current_item.description = "";
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
 
         let current_time = new TimeExpression();
         current_time.timebar_value = document.getElementById("timebar").value;
@@ -966,11 +815,7 @@ function drop_handler(ev) {
         current_item.draw();
         // editing information
         // showEditingPage(current_item);
-<<<<<<< HEAD:frontend/script.js
-
-=======
         console.log(cnt);
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
         cnt++;
     }
     // here is a bug, when the target location is outside of the "dest_copy" but still inside
@@ -1023,31 +868,13 @@ function closeMenu(){
     }
 }
 
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
-=======
-
-
->>>>>>> change frontend js scripts
-=======
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
 // decode from JSON
 function decodeJSON(str){
     console.log(str);
     // update current cnt, it should be acquired from the JSON code
-<<<<<<< HEAD:frontend/script.js
-    let plan_obj = JSON.parse(str);
-<<<<<<< HEAD
-    console.log(plan_obj);
-    // plan = new Plan();
-=======
-    plan = new Plan();
->>>>>>> change frontend js scripts
-=======
     let plan_obj = JSON.parse(JSON.parse(str));
     console.log(plan_obj);
     // plan = new Plan();
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
     console.log(plan.current_id);
@@ -1062,19 +889,6 @@ function decodeJSON(str){
         cur.item_id = cur_items[i].item_id;
         cur.layer = cur_items[i].layer;
         cur.name = cur_items[i].name;
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
-        //cur.start_time = new TimeExpression(cur_items[i].start_time);
-        //cur.end_time = new TimeExpression(cur_items[i].end_time);
-        cur.setup_start = new TimeExpression(cur_items[i].setup_start);
-        cur.setup_duration = new TimeExpression(cur_items[i].setup_duration);
-        cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start);
-        cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration);
-=======
-        cur.start_time = cur_items[i].start_time;
-        cur.end_time = cur_items[i].end_time;
->>>>>>> change frontend js scripts
-=======
         //cur.start_time = new TimeExpression(cur_items[i].start_time);
         //cur.end_time = new TimeExpression(cur_items[i].end_time);
         console.log((cur_items[i].setup_start).expression);
@@ -1082,7 +896,6 @@ function decodeJSON(str){
         cur.setup_duration = new TimeExpression(cur_items[i].setup_duration.expression);
         cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start.expression);
         cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration.expression);
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -1092,15 +905,7 @@ function decodeJSON(str){
         cur.rotate = cur_items[i].rotate;
         cur.width = cur_items[i].width;
         cur.length = cur_items[i].length;
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
         console.log(cur)
-=======
-        
->>>>>>> change frontend js scripts
-=======
-        console.log(cur)
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
         plan.addItem(cur);
     }
     console.log(plan);
@@ -1109,15 +914,7 @@ function decodeJSON(str){
 // get JSON from server
 
 function getJSON(){
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
     // let str = new String();
-=======
-    let str = new String();
->>>>>>> change frontend js scripts
-=======
-    // let str = new String();
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     // get information from current url
     let location = window.location.href;
     // let's mock the location
@@ -1133,8 +930,6 @@ function getJSON(){
     let getRequest = new XMLHttpRequest();
     server_url = "/plan_models_json/" + id;
     getRequest.open("get", server_url);
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
     console.log("url:" + server_url)
     getRequest.send(null)
     getRequest.onload = function (){
@@ -1143,26 +938,6 @@ function getJSON(){
             server_plan_obj = JSON.parse(getRequest.responseText);
             // str =  server_plan_obj.data.data;
             console.log(getRequest.responseText);
-            console.log("target", server_plan_obj.data.data);
-            console.log(server_plan_obj);
-            // return server_plan_obj.data.data;
-=======
-    getRequest.send(null);
-=======
-    console.log("url:" + server_url)
-    getRequest.send(null)
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
-    getRequest.onload = function (){
-        // loaded = true;
-        if(getRequest.status == 200){
-            server_plan_obj = JSON.parse(getRequest.responseText);
-            // str =  server_plan_obj.data.data;
-            console.log(getRequest.responseText);
-<<<<<<< HEAD:frontend/script.js
-            console.log("target", plan_obj.data.data);
-            return plan_obj.data.data;
->>>>>>> change frontend js scripts
-=======
             console.log("target", server_plan_obj.data.data);
             console.log(server_plan_obj);
             // make some initialization
@@ -1177,72 +952,20 @@ function getJSON(){
             plan.draw();
             plan.generateTable();
             selectTheTime();
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
         }else{
             console.log("JSON: errors occurred");
         }
     }
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
-=======
-    return str;
->>>>>>> change frontend js scripts
-=======
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
 }
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
 
     let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"couch\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":40,\"length\":40},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"triangle_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"length\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"rect_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"length\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
-=======
-    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":0,\"end_time\":10,\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":0,\"end_time\":16,\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":0,\"end_time\":18,\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
->>>>>>> change frontend js scripts
-=======
-
-    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"couch\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":40,\"length\":40},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"triangle_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"length\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"rect_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"length\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
     // console.log(JSON.parse(tmp));
     // call the interface from server
-<<<<<<< HEAD:frontend/script.js
-<<<<<<< HEAD
-    // getJSON();
-    
-    setTimeout(function(){
-        console.log("not loaded");
-        // let plan_json = server_plan_obj.data.data;
-        // console.log("plan_json", plan_json);
-        plan = decodeJSON(tmp);
-        
-        console.log("pllannnnnn", plan);
-        // let json_plan = JSON.stringify(plan_obj);
-        // let out = new Plan();
-        // out = JSON.parse(JSON.parse(json_plan));
-        // console.log("cccccccccccc", json_plan);
-        console.log("bbbbbbbbbbbb", plan);
-        plan.draw();
-        plan.generateTable();
-        selectTheTime();
-    }, 1000);
-    
-}
-=======
-    // let plan_json = getJSON();
-    plan = decodeJSON(tmp);
-    // let json_plan = JSON.stringify(plan_obj);
-    // let out = new Plan();
-    // out = JSON.parse(JSON.parse(json_plan));
-    // console.log("cccccccccccc", json_plan);
-    console.log("bbbbbbbbbbbb", plan);
-    plan.draw();
-    plan.generateTable();
-}
->>>>>>> change frontend js scripts
-=======
     getJSON();
     
     // setTimeout(function(){
@@ -1263,4 +986,3 @@ window.onload = function(){
     // }, 1000);
     
 }
->>>>>>> frontend change javascript here, and backend also change signup, reset password pages:frontend/drawPanel.js
