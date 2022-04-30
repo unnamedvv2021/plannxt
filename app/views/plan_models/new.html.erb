@@ -1,3 +1,110 @@
-<h1>New Plan Model</h1>
+  <!DOCTYPE html>
+  <head>
+	<link rel="stylesheet" href="/newplan.css" media="screen">
+    </head>
+<div class="container" id="container">
+	<div class="overlay">
+		<div class="overlay-panel overlay-right">
+			<h1>Create a New Plan</h1>
+			<p>Welcome to PLANNXT a tool to setup an event venue – all furniture and staff placements chronologically, and track the actual setup progress real-time.
+				Let’s get started.. </p>
+				
+				
+				
+				<%= form_with model: @plan_model do |form| %>
+				  <div>
+				    <%= form.label :name, "Plan Name", :class => "label" %>
+				    <%= form.text_field :name, :class => "input_big" %>
+				  </div>
+				  <h3>Event Days: Setup through Breakdown</h3>
+				
+				  
+				<div>
+					<%= form.label :day1, "Day 1", :class => "label" %> &nbsp
+					<%= form.date_field :day1_date, :class => "input_date"%> &nbsp
+					Hours 
+					<%= form.number_field :day1_hour1, :class => "input_small" %> 
+					to
+					<%= form.number_field :day1_hour2, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day1_hour3, :class => "input_small" %> 
+					to
+					<%= form.number_field :day1_hour4, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day1_hour5, :class => "input_small" %> 
+					to
+					<%= form.number_field :day1_hour6, :class => "input_small" %> 
+				</div>
+				<div>
+					<%= form.label :day2, "Day 2", :class => "label" %> &nbsp
+					<%= form.date_field :day2_date, :class => "input_date"%> &nbsp
+					Hours 
+					<%= form.number_field :day2_hour1, :class => "input_small" %> 
+					to
+					<%= form.number_field :day2_hour2, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day2_hour3, :class => "input_small" %> 
+					to
+					<%= form.number_field :day2_hour4, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day2_hour5, :class => "input_small" %> 
+					to
+					<%= form.number_field :day2_hour6, :class => "input_small" %> 
+				</div>
+				<div>
+					<%= form.label :day3, "Day 3", :class => "label" %> &nbsp
+					<%= form.date_field :day3_date, :class => "input_date"%> &nbsp
+					Hours 
+					<%= form.number_field :day3_hour1, :class => "input_small" %> 
+					to
+					<%= form.number_field :day3_hour2, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day3_hour3, :class => "input_small" %> 
+					to
+					<%= form.number_field :day3_hour4, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day3_hour5, :class => "input_small" %> 
+					to
+					<%= form.number_field :day3_hour6, :class => "input_small" %> 
+				</div>
+				<div>
+					<%= form.label :day1, "Day 4", :class => "label" %> &nbsp
+					<%= form.date_field :day4_date, :class => "input_date"%> &nbsp
+					Hours 
+					<%= form.number_field :day4_hour1, :class => "input_small" %> 
+					to
+					<%= form.number_field :day4_hour2, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day4_hour3, :class => "input_small" %> 
+					to
+					<%= form.number_field :day4_hour4, :class => "input_small" %> 
+					Break
+					<%= form.number_field :day4_hour5, :class => "input_small" %> 
+					to
+					<%= form.number_field :day4_hour6, :class => "input_small" %> 
+				</div>
+				<div> &nbsp</div>
+				
+				<div>
+					Dimensions of the Venue (approximate): &nbsp
+					<%= form.select :scale, ["Feet", "Meter"]%>
+					&nbsp 
+					Length:&nbsp
+					<%= form.number_field :length, :class => "input_small" %> &nbsp 
+					Width:&nbsp
+					<%= form.number_field :width, :class => "input_small" %> &nbsp 
+				</div>
 
-<%= render "form", plan_model: @plan_model %>
+				<div> &nbsp</div>
+				<div> &nbsp</div>
+				  <div>
+				    <%= form.submit "Open PLAN TEMPLATE", :class => "submit_button" %>
+				  </div>
+				<% end %>
+
+				
+
+
+</div>
+</div>
+</div>
