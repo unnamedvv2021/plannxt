@@ -12,7 +12,11 @@ let top_selected = true;
 let fur_selected = true;
 let elec_selected = true;
 let staff_selected = true;
-
+let defaultSize = new Map();
+defaultSize.set("rect_room", [40, 40]);
+defaultSize.set("round_room", [40, 40]);
+defaultSize.set("triangle_room", [40, 40]);
+defaultSize.set("couch", [40, 40]);
 class TimeExpression {
   constructor(expression) {
     if(expression){
@@ -188,14 +192,15 @@ dragGraph.prototype = {
             this.context.stroke();
         }
         else if (this.graphShape == "couch"){
+            console.log(this.w, this.h);
             let ctx = this.context;
             ctx.setLineDash([1, 0]);
             ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + 20 * 50/scale, this.y);
-            ctx.lineTo(this.x + 20 * 50/scale, this.y + 20 * 50/scale);
-            ctx.lineTo(this.x - 20 * 50/scale, this.y + 20 * 50/scale);
-            ctx.lineTo(this.x - 20 * 50/scale, this.y - 20 * 50/scale);
-            ctx.lineTo(this.x, this.y - 20 * 50/scale);
+            ctx.lineTo(this.x + this.w / 2 * 50/scale, this.y);
+            ctx.lineTo(this.x + this.w / 2 * 50/scale, this.y + this.h / 2 * 50/scale);
+            ctx.lineTo(this.x - this.w / 2 * 50/scale, this.y + this.h / 2 * 50/scale);
+            ctx.lineTo(this.x - this.w / 2 * 50/scale, this.y - this.h / 2 * 50/scale);
+            ctx.lineTo(this.x, this.y - this.h / 2 * 50/scale);
             ctx.closePath();
             ctx.stroke();
         }
@@ -299,21 +304,21 @@ function createMenu(e, mouse, id){
     newDiv.id = "deletionMenu";
     newDiv.setAttribute("class", "context-menu");
     newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
-    let sub1 = createOptionsInMenu(e, "delete", id);
-    let sub2 = createOptionsInMenu(e, "edit", id);
+    let sub1 = createOptionsInMenu(e, "delete", id, mouse);
+    let sub2 = createOptionsInMenu(e, "edit", id, mouse);
     newDiv.appendChild(sub1);
     newDiv.appendChild(sub2);
     return newDiv;
 }
 // str represents the text
-function createOptionsInMenu(e, str, id){
+function createOptionsInMenu(e, str, id, mouse){
     let opt = document.createElement("li");
     opt.textContent = str;
-    opt.setAttribute("onclick", `${str}Item(${id});`);
+    opt.setAttribute("onclick", `${str}Item(${id}, ${mouse.x}, ${mouse.y});`);
     return opt;
 }
 // select deletion
-function deleteItem(id){
+function deleteItem(id, mouse_x, mouse_y){
     console.log("complete deletion");
     // document.getElementById(id).remove();
     console.log("yyyy",typeof(id))
@@ -321,9 +326,48 @@ function deleteItem(id){
     plan.generateTable();
     plan.draw();
 }
-function editItem(id){
+function editItem(id, mouse_x, mouse_y){
+    let curItem = plan.items.get(id);
     // showEditingPage(plan.items.get(id));
-
+    let inputForm = `
+    <div class="col-sm-4 context-menu" id="editingForm" style="position: absolute; left:${mouse_x}px; top:${mouse_y}px">
+        <div class="form-group">
+            <label for="width">width</label>
+            <div> 
+                <input type="text" name="width" id="editingWidth" value="${curItem.width}" >
+            </div>
+            <label for="length">length</label>
+            <div>
+                <input type="text" name="length" id="editingLength" value="${curItem.length}">
+            </div>
+            <label for="description">description</label>
+            <div>
+                <input type="text" name="description" id="editingDescription" value="${curItem.description}">
+            </div>
+        </div>
+        <div class="">
+            <button class="btn btn-white" type="submit" onclick="cancelEdit()">cancel</button>
+            <button class="btn btn-primary" type="submit" onclick="submitEdit(${id})">submit</button>
+        </div>
+    </div>`;
+    $("#canvas_div").append(inputForm);
+}
+function cancelEdit(){
+    document.getElementById("editingForm").remove();
+}
+function submitEdit(id){
+    console.log("idddd", id);
+    let newWidth = document.getElementById("editingWidth").value;
+    let newLength = document.getElementById("editingLength").value;
+    let newDescription = document.getElementById("editingDescription").value;
+    let curItem = plan.items.get(parseInt(id));
+    console.log("new stafffssss", newWidth, newLength, newDescription);
+    curItem.width = newWidth;
+    curItem.length = newLength;
+    curItem.description = newDescription;
+    plan.generateTable();
+    plan.draw();
+    document.getElementById("editingForm").remove();
 }
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
@@ -351,6 +395,7 @@ class Item{
     rotate;
     width;
     length;
+    description;
     constructor(){
         this.finished = false;
     }
@@ -430,7 +475,7 @@ class Plan{
         this.items.forEach((element) => {
           element.setup_start.calculateStartTime();
           element.setup_duration.calculateEndTime(element.setup_start);
-          element.breakdown_start.calculateEndTime(element.setup_start);
+          element.breakdown_start.calculateStartTime(element.setup_start);
           element.breakdown_duration.calculateEndTime(element.breakdown_start);
          });
         this.items.forEach(generateTableItems);
@@ -727,16 +772,27 @@ function drop_handler(ev) {
 
         // create a new item, then insert it into the plan and finally update the table
         let current_item = new Item();
+        current_item.name = dragDiv.id;
         current_item.item_id = parseInt(cnt);
         current_item.pos_x = x * scale / 50;
         current_item.pos_y = y * scale / 50;
         current_item.type = dragDiv.id;
-        current_item.width = 60;
-        current_item.height = 30;
-        current_item.setup_start = new TimeExpression();
-        current_item.setup_duration = new TimeExpression();
-        current_item.breakdown_start = new TimeExpression();
-        current_item.breakdown_duration = new TimeExpression();
+        // current_item.width = 100;
+        current_item.width = defaultSize.get(dragDiv.id)[0];
+        current_item.length = defaultSize.get(dragDiv.id)[1];
+
+        let current_time = new TimeExpression();
+        current_time.timebar_value = document.getElementById("timebar").value;
+        // time = current_time.timebar_value;
+        // console.log("current time is ", time);
+        // document.getElementById("showTimebar").innerText = `Plan Time: ${current_time.toDisplayTime()}`;
+
+
+        current_item.setup_start = new TimeExpression(current_time.toDisplayTime());
+
+        current_item.setup_duration = new TimeExpression("1:00");
+        current_item.breakdown_start = new TimeExpression(current_time.toDisplayTime());
+        current_item.breakdown_duration = new TimeExpression("1:00");
         // console.log("kkkkk");
         if(dragDiv.classList.contains("top")){
             current_item.layer = "top";
@@ -783,10 +839,15 @@ function dragend_handler(ev) {
 // when clicking on any other space except the menu, the menu disappear
 document.addEventListener('click', function(e){
     // console.log(e.target.getAttribute("class"));
-    closeMenu();
-    if(e.target.getAttribute("class") != "data" && document.getElementById("editData")){
+    
+    // if(document.getElementById("editingForm")){
+    //     document.getElementById("editingForm").style.display = "none";
+    // }
+    console.log(e.target.id);
+    if(e.target.getAttribute("class") != "data" && document.getElementById("editData") && e.target.id != "blankInput"){
         document.getElementById("editData").remove();
     }
+    closeMenu();
 })
 function leftClick(e){
     console.log("leftClick on the item");
@@ -804,12 +865,12 @@ function closeMenu(){
     }
 }
 
-
-
 // decode from JSON
 function decodeJSON(str){
+    console.log(str);
     // update current cnt, it should be acquired from the JSON code
     let plan_obj = JSON.parse(str);
+    console.log(plan_obj);
     // plan = new Plan();
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
@@ -825,10 +886,10 @@ function decodeJSON(str){
         cur.name = cur_items[i].name;
         //cur.start_time = new TimeExpression(cur_items[i].start_time);
         //cur.end_time = new TimeExpression(cur_items[i].end_time);
-        cur.setup_start = new TimeExpression(JSON.parse(cur_items[i].setup_start).expression);
-        cur.setup_duration = new TimeExpression(JSON.parse(cur_items[i].setup_duration).expression);
-        cur.breakdown_start = new TimeExpression(JSON.parse(cur_items[i].breakdown_start).expression);
-        cur.breakdown_duration = new TimeExpression(JSON.parse(cur_items[i].breakdown_duration).expression);
+        cur.setup_start = new TimeExpression(cur_items[i].setup_start);
+        cur.setup_duration = new TimeExpression(cur_items[i].setup_duration);
+        cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start);
+        cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration);
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -838,7 +899,7 @@ function decodeJSON(str){
         cur.rotate = cur_items[i].rotate;
         cur.width = cur_items[i].width;
         cur.length = cur_items[i].length;
-
+        console.log(cur)
         plan.addItem(cur);
     }
     console.log(plan);
@@ -847,7 +908,7 @@ function decodeJSON(str){
 // get JSON from server
 
 function getJSON(){
-    let str = new String();
+    // let str = new String();
     // get information from current url
     let location = window.location.href;
     // let's mock the location
@@ -863,37 +924,48 @@ function getJSON(){
     let getRequest = new XMLHttpRequest();
     server_url = "/plan_models_json/" + id;
     getRequest.open("get", server_url);
-    getRequest.send(null);
+    console.log("url:" + server_url)
+    getRequest.send(null)
     getRequest.onload = function (){
+        // loaded = true;
         if(getRequest.status == 200){
             server_plan_obj = JSON.parse(getRequest.responseText);
+            // str =  server_plan_obj.data.data;
             console.log(getRequest.responseText);
             console.log("target", server_plan_obj.data.data);
-            return plan_obj.data.data;
+            console.log(server_plan_obj);
+            // return server_plan_obj.data.data;
         }else{
             console.log("JSON: errors occurred");
         }
     }
-    return str;
 }
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
 
-    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
+    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"couch\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":40,\"length\":40},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"triangle_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"length\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"rect_room\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"1:00\",\"breakdown_start\":\"04/28/13:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"length\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
     // console.log(JSON.parse(tmp));
     // call the interface from server
-    // let plan_json = getJSON();
-    console.log(plan);
-    plan = decodeJSON(tmp);
-    // let json_plan = JSON.stringify(plan_obj);
-    // let out = new Plan();
-    // out = JSON.parse(JSON.parse(json_plan));
-    // console.log("cccccccccccc", json_plan);
-    console.log("bbbbbbbbbbbb", plan);
-    plan.draw();
-    plan.generateTable();
-    selectTheTime();
+    // getJSON();
+    
+    setTimeout(function(){
+        console.log("not loaded");
+        // let plan_json = server_plan_obj.data.data;
+        // console.log("plan_json", plan_json);
+        plan = decodeJSON(tmp);
+        
+        console.log("pllannnnnn", plan);
+        // let json_plan = JSON.stringify(plan_obj);
+        // let out = new Plan();
+        // out = JSON.parse(JSON.parse(json_plan));
+        // console.log("cccccccccccc", json_plan);
+        console.log("bbbbbbbbbbbb", plan);
+        plan.draw();
+        plan.generateTable();
+        selectTheTime();
+    }, 1000);
+    
 }
