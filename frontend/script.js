@@ -12,6 +12,117 @@ let top_selected = true;
 let fur_selected = true;
 let elec_selected = true;
 let staff_selected = true;
+
+class TimeExpression {
+  constructor(expression) {
+    if(expression){
+      this.expression = expression;
+    }
+    else {
+      this.expression = "Invalid";
+    }
+    this.timebar_value = -1.0;
+  }
+  toDisplayTime(){
+    if(this.timebar_value < 0){
+      return "Invalid";
+    }
+    let day_index = parseInt(this.timebar_value / 24);
+    let hours = parseInt(this.timebar_value - day_index * 24);
+    let minutes = Math.round((this.timebar_value - day_index * 24 - hours) * 60);
+    return date_list[day_index] + '/' +String("0" + hours).slice(-2) + ':' + String("0" + minutes).slice(-2);
+  }
+
+  calculateStartTime(){
+    var timeRe = /^\d{2}\/\d{2}\/\d+:\d{2}$/i;
+    var relativeRe = /^t\d+\+\d+:\d{2}/i;
+    if(timeRe.test(this.expression)){
+      var matched_data = this.expression.match(/\d+/g);
+      var day_string = this.expression.substring(0,5);
+      var hours = parseInt(matched_data[2]);
+      var minutes = parseFloat(matched_data[3]);
+      var day_index = -1;
+      for(let i = 0; i< date_list.length; i++){
+        if(day_string == date_list[i]){
+          day_index = i;
+          break;
+        }
+      }
+      if(day_index < 0 || hours > 24 || hours < 0 || minutes > 60 || minutes < 0){
+        this.timebar_value = -1.0;
+        return;
+      }
+      this.timebar_value = 24 * day_index + hours + minutes / 60.0;
+      //console.log("time bar value: ", this.timebar_value);
+      for(let i = 0; i< breakdown_time.length; i++){
+        if(this.timebar_value >= breakdown_time[i][0] && this.timebar_value < breakdown_time[i][1]){
+          alert("Current Start time is inside break down time!");
+          this.timebar_value = -1.0;
+        }
+      }
+      return;
+    }
+    else if (relativeRe.test(this.expression)) {
+      var matchedData = this.expression.match(/\d+/g);
+      var parentId = matchedData[0];
+      var offset = parseFloat(matchedData[1]) + parseFloat(matchedData[2]) / 60.0;
+      // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
+      // Self addition is not allowed. Example: TS11 = TS11 + 1.
+      if(plan.items.get(parseInt(parentId))){
+        var parentValue = plan.items.get(parseInt(parentId)).setup_start.timebar_value;
+        if(parentValue >= 0){
+          this.timebar_value = addBreakdownTime(parentValue, offset, 0);
+          return;
+        }
+      }
+    }
+    this.timebar_value = -1.0;
+    return;
+  }
+  calculateEndTime(parentTime){
+    var timeRe = /^\d+:\d{2}$/i;
+    if (timeRe.test(this.expression)){
+      var matchedData = this.expression.match(/\d+/g);
+      var offset = parseFloat(matchedData[0]) + parseFloat(matchedData[1]) / 60.0;
+      if(parentTime){
+        var parentValue = parentTime.timebar_value;
+        if(parentValue >= 0){
+          this.timebar_value = addBreakdownTime(parentValue, offset, 0);
+          return;
+        }
+      }
+    }
+    this.timebar_value = -1.0;
+    return;
+  }
+}
+
+function addBreakdownTime(parentValue, offset, breakdown_time_index){
+  if(offset == 0){
+    return parentValue;
+  }
+  if(breakdown_time_index >= breakdown_time.length){
+    return parentValue + offset;
+  }
+  if(breakdown_time[breakdown_time_index][0] < parentValue){
+    return addBreakdownTime(parentValue, offset, breakdown_time_index + 1);
+  }
+  var avaliable_time = breakdown_time[breakdown_time_index][0] - parentValue;
+  if(avaliable_time <= offset){
+    var breakdown_time_interval = breakdown_time[breakdown_time_index][1] - breakdown_time[breakdown_time_index][0];
+    return addBreakdownTime(parentValue + avaliable_time + breakdown_time_interval, offset -avaliable_time, breakdown_time_index + 1);
+  }
+  else{
+    return parentValue + offset;
+  }
+}
+
+let breakdown_time = [
+    [12, 13],
+    [16, 18]
+];
+let date_list =["04/28","04/29","04/30","05/01"];
+
 const canvasWidth = canvas.width;
 const canvasHeight = canvas.height;
 // var canvas = document.getElementById("canvas");
@@ -23,7 +134,7 @@ var graphs = [];
 
 // ];
 var tempGraphArr = [];
-let dragGraph = function (id, x, y, w, h, strokeStyle, canvas, graphShape) {
+dragGraph = function (id, x, y, w, h, strokeStyle, canvas, graphShape) {
     this.id = id;
     this.x = x;
     this.y = y;
@@ -51,7 +162,7 @@ dragGraph.prototype = {
         let res = this.context.isPointInPath(mouse.x, mouse.y);
         return res;
     },
-    
+
     shapeDraw: function () {
         if (this.graphShape == "rect_room"){
             // draw a rect room
@@ -94,6 +205,10 @@ dragGraph.prototype = {
     }
 }
 canvas.addEventListener("mousedown", function (e) {
+    // avoid right click moving
+    if(e.button == 1 || e.button == 2){
+        return;
+    }
     var mouse = {
         x: e.clientX - canvas.getBoundingClientRect().left,
         y: e.clientY - canvas.getBoundingClientRect().top
@@ -105,6 +220,9 @@ canvas.addEventListener("mousedown", function (e) {
             y: mouse.y - shape.y
         };
         if (shape.isMouseInGraph(mouse)) {
+            if((shape.graphShape == "rect_room" || shape.graphShape == "round_room" || shape.graphShape == "triangle_room") && !top_selected){
+                return;
+            }
             // console.log("cc");
             let id = shape.id;
             tempGraphArr.push(shape);
@@ -127,7 +245,7 @@ canvas.addEventListener("mousedown", function (e) {
                     plan.items.get(id).pos_x = (mouse.x - offset.x) * scale / 50;
                     plan.items.get(id).pos_y = (mouse.y - offset.y) * scale / 50;
                     // drawGraph();
-                    
+
                     plan.draw();
                 }
             }, false);
@@ -150,54 +268,62 @@ canvas.addEventListener("contextmenu", function(e){
             y: mouse.y - shape.y
         };
         if (shape.isMouseInGraph(mouse)) {
+            if((shape.graphShape == "rect_room" || shape.graphShape == "round_room" || shape.graphShape == "triangle_room") && !top_selected){
+                return;
+            }
+            //
             closeMenu();
-            rightClick(e);
+            rightClick(e, mouse, shape.id);
         }
     });
     e.preventDefault();
 }, false);
-function rightClick(e){
+function rightClick(e, mouse, id){
     if(editable == false){
         return;
     }
     e.preventDefault();
     closeMenu();
-    let menu = createMenu(e);
+    let menu = createMenu(e, mouse, id);
     // console.log(typeof(menu), "vvvvv");
     document.getElementById("canvas_div").appendChild(menu);
 }
-function createMenu(e){
+function createMenu(e, mouse, id){
     console.log("create menu");
-    x = e.clientX;
-    y = e.clientY;
+    // x = e.clientX;
+    // y = e.clientY;
+    x = mouse.x;
+    y = mouse.y;
+    console.log(x, y);
     let newDiv = document.createElement("ul");
     newDiv.id = "deletionMenu";
     newDiv.setAttribute("class", "context-menu");
     newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
-    let sub1 = createOptionsInMenu(e, "delete");
-    let sub2 = createOptionsInMenu(e, "edit");
+    let sub1 = createOptionsInMenu(e, "delete", id);
+    let sub2 = createOptionsInMenu(e, "edit", id);
     newDiv.appendChild(sub1);
     newDiv.appendChild(sub2);
     return newDiv;
 }
 // str represents the text
-function createOptionsInMenu(e, str){
+function createOptionsInMenu(e, str, id){
     let opt = document.createElement("li");
     opt.textContent = str;
-    let id = e.currentTarget.id;
     opt.setAttribute("onclick", `${str}Item(${id});`);
     return opt;
 }
 // select deletion
 function deleteItem(id){
     console.log("complete deletion");
-    document.getElementById(id).remove();
+    // document.getElementById(id).remove();
     console.log("yyyy",typeof(id))
     plan.items.delete(id);
     plan.generateTable();
+    plan.draw();
 }
 function editItem(id){
-    showEditingPage(plan.items.get(id));
+    // showEditingPage(plan.items.get(id));
+
 }
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
@@ -206,11 +332,18 @@ class Item{
     layer;
     // count_id;
     name;
-    start_time;
-    end_time;
+    //start_time;
+    //end_time;
+
+    setup_start
+    setup_duration
+    breakdown_start
+    breakdown_duration
+
     owner;
-    setup_time;
-    breakdown_time;
+    //setup_time;
+    //breakdown_time;
+    finished;
     // type should be consistent with the id of the items in the repository shown in HTML
     type;
     pos_x;
@@ -219,19 +352,17 @@ class Item{
     width;
     length;
     constructor(){
-
+        this.finished = false;
     }
     //calculateExpression(value.start_time, value.item_id)
     draw(){
-        console.log("draw items", this.layer)
-        if(calculateExpression(this.start_time, this.item_id) > time || calculateExpression(this.end_time, this.item_id) < time){
+        if(this.setup_start.timebar_value > time || this.breakdown_duration.timebar_value < time){
             return;
         }
-        if((this.layer == "top" && !top_selected) || (this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
+        if((this.layer == "furniture" && !fur_selected) || (this.layer == "electrical" && !elec_selected) || (this.layer == "staff" && !this.staf_selected)){
             return;
         }
         if(this.layer == "top"){
-            console.log("this is a top layer item");
             this.strokeStyle = "blue";
         }
         if(this.layer == "furniture"){
@@ -243,10 +374,8 @@ class Item{
         if(this.layer == "staff"){
             this.strokeStyle = "red";
         }
-        console.log(this.strokeStyle);
         // console.log("thishishihsihs");
         let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type);
-        console.log(graph);
         graphs.push(graph);
         graph.paint();
     }
@@ -297,7 +426,13 @@ class Plan{
     generateTable(){
         $("#tableItemsBody").remove();
         $("#tableItems").append("<tbody id='tableItemsBody'></tbody>");
-        // console.log("this is what i want ", plan.items);
+        console.log("this is what i want ", plan.items);
+        this.items.forEach((element) => {
+          element.setup_start.calculateStartTime();
+          element.setup_duration.calculateEndTime(element.setup_start);
+          element.breakdown_start.calculateEndTime(element.setup_start);
+          element.breakdown_duration.calculateEndTime(element.breakdown_start);
+         });
         this.items.forEach(generateTableItems);
     }
 }
@@ -307,48 +442,34 @@ function drawItems(value, key, map){
     // console.log(value);
     value.draw();
 }
-function calculateExpression(expression, id){
-  var numberRe = /^\d+$/i;
-  var startTimeRe = /^ts\d+\+\d+$/i;
-  var endTimeRe = /^te\d+\+\d+$/i;
-  if(numberRe.test(expression)){
-    return expression;
-  }
-  else if (startTimeRe.test(expression)) {
-    var matchedData = expression.match(/\d+/g);
-    var parentId = matchedData[0];
-    var offset = matchedData[1];
-    // For start time, partentID can be equal to childID. Examle: TE11 = TS11 + 5.
-    // Self addition is not allowed. Example: TS11 = TS11 + 1.
-    if(parentId <= id && plan.items.get(parseInt(parentId)) && plan.items.get(parseInt(parentId)).start_time != expression){
-      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).start_time, parentId);
-      if(numberRe.test(parentValue)){
-        return parseInt(parentValue) + parseInt(offset);
-      }
-    }
-  }
-  else if (endTimeRe.test(expression)) {
-    var matchedData = expression.match(/\d+/g);
-    var parentId = matchedData[0];
-    var offset = matchedData[1];
-    if(parentId < id && plan.items.get(parseInt(parentId))){
-      var parentValue = calculateExpression(plan.items.get(parseInt(parentId)).end_time, parentId);
-      if(numberRe.test(parentValue)){
-        return parseInt(parentValue) + parseInt(offset);
-      }
-    }
-  }
-  return 'Invalid!'
-}
 function generateTableItems(value, key, map){
-    let tr = `<tr>
+  var tr;
+  if(!value.finished){
+    tr = `<tr>
     <td class="data">${value.item_id}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'start_time')">${calculateExpression(value.start_time, value.item_id)}</td>
-    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'end_time')">${calculateExpression(value.end_time, value.item_id)}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'setup_start')">${value.setup_start.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'setup_end')">${value.setup_duration.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_start')">${value.breakdown_start.toDisplayTime()}</td>
+    <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_end')">${value.breakdown_duration.toDisplayTime()}</td>
     <td class="data" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
+    <td class="data"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
     </tr>`;
-    $("#tableItemsBody").append(tr);
+  }
+  else{
+    tr = `<tr>
+    <td class="data" style="background-color:grey;">${value.item_id}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'name')">${value.name}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'setup_start')">${value.setup_start.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'setup_end')">${value.setup_duration.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_start')">${value.breakdown_start.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'breakdown_end')">${value.breakdown_duration.toDisplayTime()}</td>
+    <td class="data" style="background-color:grey;" onclick="clickToEditData(event, ${value.item_id}, 'owner')">${value.owner}</td>
+    <td class="data" style="background-color:grey;"> <input type="checkbox" id="checkbox_${value.item_id}" onchange='clickToChangeState(event, ${value.item_id})' /></td>
+    </tr>`;
+  }
+  $("#tableItemsBody").append(tr);
+  document.getElementById(`checkbox_${value.item_id}`).checked = value.finished;
 }
 function clickToSelectTop(){
     // if top is currently selected
@@ -437,8 +558,8 @@ function clickToEditData(e, item_id, attr){
     // console.log("uuuuu", e.currentTarget.getAttribute("class"));
     let current_item = plan.items.get(parseInt(item_id));
     let table = document.getElementById("table");
-    let ox = table.getBoundingClientRect().left;
-    let oy = table.getBoundingClientRect().top;
+    ox = table.getBoundingClientRect().left;
+    oy = table.getBoundingClientRect().top;
     x = e.currentTarget.getBoundingClientRect().left;
     y = e.currentTarget.getBoundingClientRect().top;
     console.log(item_id, x, y, ox, oy, e.currentTarget);
@@ -449,22 +570,34 @@ function clickToEditData(e, item_id, attr){
         document.getElementById("editData").remove();
     }
     var dispalyText;
-    if(attr == 'start_time'){
-      dispalyText = plan.items.get(item_id).start_time;
+    if(attr == 'setup_start'){
+      dispalyText = plan.items.get(item_id).setup_start.expression;
     }
-    else if (attr == 'end_time') {
-      dispalyText = plan.items.get(item_id).end_time;
+    else if (attr == 'setup_end') {
+      dispalyText = plan.items.get(item_id).setup_duration.expression;
+    }
+    else if (attr == 'breakdown_start') {
+      dispalyText = plan.items.get(item_id).breakdown_start.expression;
+    }
+    else if (attr == 'breakdown_end') {
+      dispalyText = plan.items.get(item_id).breakdown_duration.expression;
     }
     else {
       dispalyText = e.currentTarget.innerText;
     }
     $("#table").append(`<div id="editData" style="position: absolute; left: ${x - ox + 3 + table.scrollLeft}px; top: ${y - oy + 3 + table.scrollTop}px">
-    <input style="width:60px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
+    <input style="width:100px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
     </div>`);
     document.getElementById("blankInput").select();
     // let blank = `<input type="text" onchange="">`;
     // $("#editData").append(blank);
 
+}
+function clickToChangeState(e, item_id){
+    // console.log("uuuuu", e.currentTarget.getAttribute("class"));
+    let current_item = plan.items.get(parseInt(item_id));
+    current_item.finished = !current_item.finished;
+    plan.generateTable();
 }
 function changeData(e, id, attr){
     // console.log((e.value);
@@ -473,16 +606,23 @@ function changeData(e, id, attr){
     if(attr == 'name'){
         item.name = e.currentTarget.value;
     }
-    if(attr == 'start_time'){
-        item.start_time = e.currentTarget.value;
+    if(attr == 'setup_start'){
+        item.setup_start.expression = e.currentTarget.value;
     }
-    if(attr == 'end_time'){
-        item.end_time = e.currentTarget.value;
+    if(attr == 'setup_end'){
+        item.setup_duration.expression = e.currentTarget.value;
+    }
+    if(attr == 'breakdown_start'){
+        item.breakdown_start.expression = e.currentTarget.value;
+    }
+    if(attr == 'breakdown_end'){
+        item.breakdown_duration.expression = e.currentTarget.value;
     }
     if(attr == 'owner'){
         item.owner = e.currentTarget.value;
     }
     plan.generateTable();
+    plan.draw();
     document.getElementById("editData").remove();
 }
 // button action
@@ -495,28 +635,28 @@ function clickToEdit(e){
 function clickToSave(e){
     console.log("tttt");
     // location.reload(false);
-    // editable = false;
-    plan.current_id = cnt;
+    editable = false;
     // communicate with the server
     let str = JSON.stringify(plan);
     let sentObj = {
-        "data" : plan
+        "data":str
     }
     let sentJSON = JSON.stringify(sentObj);
-    server_plan_obj.data.data = str;
-    let server_plan_json = JSON.stringify(server_plan_obj);
+
+    // server_plan_obj.data.data = str;
+    // let server_plan_json = JSON.stringify(server_plan_obj);
     // console.log(str);
     // console.log("-"*10);
     // console.log(server_plan_obj);
 
     let putRequest = new XMLHttpRequest();
-    putRequest.open("PUT", server_url);
+    putRequest.open("put", server_url);
     putRequest.setRequestHeader("Content-type", "application/json");
     putRequest.onload = function(){
         if(putRequest.readyState == 4 && putRequest.status == 200){
             console.log("connection completed");
         }else{
-            console.log("error occurred", putRequest.status);
+            console.log("error occurred");
         }
     }
     console.log(sentJSON);
@@ -525,9 +665,11 @@ function clickToSave(e){
 }
 function selectTheTime(){
     // console.log("test clicking the timebar");
-    time = document.getElementById("timebar").value;
+    let current_time = new TimeExpression();
+    current_time.timebar_value = document.getElementById("timebar").value;
+    time = current_time.timebar_value;
     // console.log("current time is ", time);
-    document.getElementById("showTimebar").innerText = `timebar:${time}`;
+    document.getElementById("showTimebar").innerText = `Plan Time: ${current_time.toDisplayTime()}`;
     plan.draw();
 }
 function selectTheScale(){
@@ -582,7 +724,7 @@ function drop_handler(ev) {
         // nodeCopy.setAttribute("onclick", "leftClick(event);")
         // ev.target.appendChild(nodeCopy);
 
-        
+
         // create a new item, then insert it into the plan and finally update the table
         let current_item = new Item();
         current_item.item_id = parseInt(cnt);
@@ -590,8 +732,12 @@ function drop_handler(ev) {
         current_item.pos_y = y * scale / 50;
         current_item.type = dragDiv.id;
         current_item.width = 60;
-        current_item.length = 30;
-        console.log("kkkkk");
+        current_item.height = 30;
+        current_item.setup_start = new TimeExpression();
+        current_item.setup_duration = new TimeExpression();
+        current_item.breakdown_start = new TimeExpression();
+        current_item.breakdown_duration = new TimeExpression();
+        // console.log("kkkkk");
         if(dragDiv.classList.contains("top")){
             current_item.layer = "top";
         }
@@ -610,7 +756,7 @@ function drop_handler(ev) {
         current_item.draw();
         // editing information
         // showEditingPage(current_item);
-        console.log(cnt);
+
         cnt++;
     }
     // here is a bug, when the target location is outside of the "dest_copy" but still inside
@@ -658,18 +804,13 @@ function closeMenu(){
     }
 }
 
-
-
 // decode from JSON
 function decodeJSON(str){
     // update current cnt, it should be acquired from the JSON code
-    console.log("decode", str);
     let plan_obj = JSON.parse(str);
-    console.log("decode", plan_obj);
-    plan = new Plan();
+    // plan = new Plan();
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
-    cnt = plan.current_id;
     // plan.items = new Map(Object.entries(plan_obj.items));
 
     let cur_items = plan_obj.items;
@@ -680,8 +821,12 @@ function decodeJSON(str){
         cur.item_id = cur_items[i].item_id;
         cur.layer = cur_items[i].layer;
         cur.name = cur_items[i].name;
-        cur.start_time = parseInt(cur_items[i].start_time);
-        cur.end_time = parseInt(cur_items[i].end_time);
+        //cur.start_time = new TimeExpression(cur_items[i].start_time);
+        //cur.end_time = new TimeExpression(cur_items[i].end_time);
+        cur.setup_start = new TimeExpression(JSON.parse(cur_items[i].setup_start).expression);
+        cur.setup_duration = new TimeExpression(JSON.parse(cur_items[i].setup_duration).expression);
+        cur.breakdown_start = new TimeExpression(JSON.parse(cur_items[i].breakdown_start).expression);
+        cur.breakdown_duration = new TimeExpression(JSON.parse(cur_items[i].breakdown_duration).expression);
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -691,25 +836,14 @@ function decodeJSON(str){
         cur.rotate = cur_items[i].rotate;
         cur.width = cur_items[i].width;
         cur.length = cur_items[i].length;
-        
+
         plan.addItem(cur);
     }
     console.log(plan);
     return plan;
 }
-
-// function getCookie(cname){
-//     var name = cname + "=";
-//     var ca = document.cookie.split(';');
-//     for(var i=0; i<ca.length; i++) {
-//         var c = ca[i].trim();
-//         if (c.indexOf(name)==0) { return c.substring(name.length,c.length); }
-//     }
-//     return "";
-// }
-
 // get JSON from server
-// let loaded = false;
+
 function getJSON(){
     // let str = new String();
     // get information from current url
@@ -746,6 +880,7 @@ function getJSON(){
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
+
     let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":0,\"end_time\":10,\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":0,\"end_time\":16,\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":0,\"end_time\":18,\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
@@ -766,7 +901,7 @@ window.onload = function(){
         console.log("bbbbbbbbbbbb", plan);
         plan.draw();
         plan.generateTable();
+        selectTheTime();
     }, 1000);
-    
     
 }
