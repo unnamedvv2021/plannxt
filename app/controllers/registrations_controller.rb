@@ -11,7 +11,7 @@ class RegistrationsController < ApplicationController
         
         # stores saved user id in a session
         session[:user_id] = @user.id
-        redirect_to sign_in_path, notice: 'Successfully created account! Automatically logged in!'
+        redirect_to edit_page_path, notice: 'Successfully created account! Automatically logged in!'
       else
         redirect_to sign_up_path, notice: 'Create account failed! ' + @user.errors.full_messages.join('; ') + "."
       end
