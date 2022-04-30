@@ -365,6 +365,7 @@ function submitEdit(id){
     curItem.width = newWidth;
     curItem.length = newLength;
     curItem.description = newDescription;
+    console.log(curItem);
     plan.generateTable();
     plan.draw();
     document.getElementById("editingForm").remove();
@@ -680,7 +681,8 @@ function clickToEdit(e){
 function clickToSave(e){
     console.log("tttt");
     // location.reload(false);
-    editable = false;
+    // editable = false;
+    plan.current_id = cnt;
     // communicate with the server
     let str = JSON.stringify(plan);
     let sentObj = {
@@ -769,7 +771,7 @@ function drop_handler(ev) {
         // nodeCopy.setAttribute("onclick", "leftClick(event);")
         // ev.target.appendChild(nodeCopy);
 
-
+        console.log("finish")
         // create a new item, then insert it into the plan and finally update the table
         let current_item = new Item();
         current_item.name = dragDiv.id;
@@ -780,6 +782,7 @@ function drop_handler(ev) {
         // current_item.width = 100;
         current_item.width = defaultSize.get(dragDiv.id)[0];
         current_item.length = defaultSize.get(dragDiv.id)[1];
+        current_item.description = "";
 
         let current_time = new TimeExpression();
         current_time.timebar_value = document.getElementById("timebar").value;
@@ -812,7 +815,7 @@ function drop_handler(ev) {
         current_item.draw();
         // editing information
         // showEditingPage(current_item);
-
+        console.log(cnt);
         cnt++;
     }
     // here is a bug, when the target location is outside of the "dest_copy" but still inside
@@ -869,11 +872,13 @@ function closeMenu(){
 function decodeJSON(str){
     console.log(str);
     // update current cnt, it should be acquired from the JSON code
-    let plan_obj = JSON.parse(str);
+    let plan_obj = JSON.parse(JSON.parse(str));
     console.log(plan_obj);
     // plan = new Plan();
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
+    console.log(plan.current_id);
+    cnt = plan.current_id;
     // plan.items = new Map(Object.entries(plan_obj.items));
 
     let cur_items = plan_obj.items;
@@ -886,10 +891,11 @@ function decodeJSON(str){
         cur.name = cur_items[i].name;
         //cur.start_time = new TimeExpression(cur_items[i].start_time);
         //cur.end_time = new TimeExpression(cur_items[i].end_time);
-        cur.setup_start = new TimeExpression(cur_items[i].setup_start);
-        cur.setup_duration = new TimeExpression(cur_items[i].setup_duration);
-        cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start);
-        cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration);
+        console.log((cur_items[i].setup_start).expression);
+        cur.setup_start = new TimeExpression(cur_items[i].setup_start.expression);
+        cur.setup_duration = new TimeExpression(cur_items[i].setup_duration.expression);
+        cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start.expression);
+        cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration.expression);
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -934,7 +940,18 @@ function getJSON(){
             console.log(getRequest.responseText);
             console.log("target", server_plan_obj.data.data);
             console.log(server_plan_obj);
+            // make some initialization
+            // let extra_json = server_plan_obj.data.extra1;
+            // // let extra_obj = JSON.parse(extra_json);
+            // console.log(extra_json)
+            
+            
             // return server_plan_obj.data.data;
+            let plan_json = server_plan_obj.data.data;
+            plan = decodeJSON(plan_json);
+            plan.draw();
+            plan.generateTable();
+            selectTheTime();
         }else{
             console.log("JSON: errors occurred");
         }
@@ -949,23 +966,23 @@ window.onload = function(){
     console.log("loading");
     // console.log(JSON.parse(tmp));
     // call the interface from server
-    // getJSON();
+    getJSON();
     
-    setTimeout(function(){
-        console.log("not loaded");
-        // let plan_json = server_plan_obj.data.data;
-        // console.log("plan_json", plan_json);
-        plan = decodeJSON(tmp);
+    // setTimeout(function(){
+    //     // console.log("not loaded");
+    //     let plan_json = server_plan_obj.data.data;
+    //     // console.log("plan_json", plan_json);
+    //     plan = decodeJSON(plan_json);
         
-        console.log("pllannnnnn", plan);
-        // let json_plan = JSON.stringify(plan_obj);
-        // let out = new Plan();
-        // out = JSON.parse(JSON.parse(json_plan));
-        // console.log("cccccccccccc", json_plan);
-        console.log("bbbbbbbbbbbb", plan);
-        plan.draw();
-        plan.generateTable();
-        selectTheTime();
-    }, 1000);
+    //     // console.log("pllannnnnn", plan);
+    //     // let json_plan = JSON.stringify(plan_obj);
+    //     // let out = new Plan();
+    //     // out = JSON.parse(JSON.parse(json_plan));
+    //     // console.log("cccccccccccc", json_plan);
+    //     // console.log("bbbbbbbbbbbb", plan);
+    //     plan.draw();
+    //     plan.generateTable();
+    //     selectTheTime();
+    // }, 1000);
     
 }

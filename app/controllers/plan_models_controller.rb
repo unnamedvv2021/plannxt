@@ -22,12 +22,59 @@ class PlanModelsController < ApplicationController
   def new
     @plan_model = PlanModel.new
   end
+  
+  def fix_params
+    if params[:plan_model].blank?
+        # parent not provided
+        return
+    end
+    new_paras = plan_model_data
+    if params[:plan_model].key?("day1_date")
+      new_paras[:extra1] = {"day1_date" => params[:plan_model].delete(:day1_date),
+                                      "day1_hour1" => params[:plan_model].delete(:day1_hour1),
+                                      "day1_hour2" => params[:plan_model].delete(:day1_hour2),
+                                      "day1_hour3" => params[:plan_model].delete(:day1_hour3),
+                                      "day1_hour4" => params[:plan_model].delete(:day1_hour4),
+                                      "day1_hour5" => params[:plan_model].delete(:day1_hour5),
+                                      "day1_hour6" => params[:plan_model].delete(:day1_hour6),
+                                      "day2_date" => params[:plan_model].delete(:day2_date),
+                                      "day2_hour1" => params[:plan_model].delete(:day2_hour1),
+                                      "day2_hour2" => params[:plan_model].delete(:day2_hour2),
+                                      "day2_hour3" => params[:plan_model].delete(:day2_hour3),
+                                      "day2_hour4" => params[:plan_model].delete(:day2_hour4),
+                                      "day2_hour5" => params[:plan_model].delete(:day2_hour5),
+                                      "day2_hour6" => params[:plan_model].delete(:day2_hour6),
+                                      "day3_date" => params[:plan_model].delete(:day3_date),
+                                      "day3_hour1" => params[:plan_model].delete(:day3_hour1),
+                                      "day3_hour2" => params[:plan_model].delete(:day3_hour2),
+                                      "day3_hour3" => params[:plan_model].delete(:day3_hour3),
+                                      "day3_hour4" => params[:plan_model].delete(:day3_hour4),
+                                      "day3_hour5" => params[:plan_model].delete(:day3_hour5),
+                                      "day3_hour6" => params[:plan_model].delete(:day3_hour6),
+                                      "day4_date" => params[:plan_model].delete(:day4_date),
+                                      "day4_hour1" => params[:plan_model].delete(:day4_hour1),
+                                      "day4_hour2" => params[:plan_model].delete(:day4_hour2),
+                                      "day4_hour3" => params[:plan_model].delete(:day4_hour3),
+                                      "day4_hour4" => params[:plan_model].delete(:day4_hour4),
+                                      "day4_hour5" => params[:plan_model].delete(:day4_hour5),
+                                      "day4_hour6" => params[:plan_model].delete(:day4_hour6),
+                                      "scale" => params[:plan_model].delete(:scale),
+                                      "length" => params[:plan_model].delete(:length),
+                                      "width" => params[:plan_model].delete(:width)
+                                      
+      }
+    end
+
+    logger.info "After fix:"
+    logger.info new_paras
+    return new_paras
+  end
 
   def create
-    @plan_model = PlanModel.new(plan_model_data)
-
+    @plan_model = PlanModel.new(fix_params)
     if @plan_model.save
-      redirect_to edit_page_path
+      redirect_to edit_plan_model_path(@plan_model)
+      #redirect_to edit_page_path
     else
       render :new, status: :unprocessable_entity
     end
@@ -52,12 +99,12 @@ class PlanModelsController < ApplicationController
   def edit
     @plan_model = PlanModel.find(params[:id])
     #render inline: File.read('frontend/Untitled-1.html')
-    render file: 'frontend/Untitled-1.html', layout: false
+    render file: 'frontend/drawPanel.html', layout: false
   end
   
   def update
     @plan_model = PlanModel.find(params[:id])
-    if @plan_model.update(plan_model_data)
+    if @plan_model.update(fix_params)
       flash[:notice] = "#{@plan_model.name} was successfully updated."
       redirect_to @plan_model
     else
