@@ -87,8 +87,8 @@ class TimeExpression {
       if(parentTime){
         var parentValue = parentTime.timebar_value;
         if(parentValue >= 0){
-          this.timebar_value = addBreakdownTime(parentValue, offset, 0);
-          return;
+            this.timebar_value = addBreakdownTime(parentValue, offset, 0);
+            return;
         }
       }
     }
@@ -299,21 +299,21 @@ function createMenu(e, mouse, id){
     newDiv.id = "deletionMenu";
     newDiv.setAttribute("class", "context-menu");
     newDiv.style.cssText = `position: absolute; left: ${x}px; top: ${y}px;`;
-    let sub1 = createOptionsInMenu(e, "delete", id);
-    let sub2 = createOptionsInMenu(e, "edit", id);
+    let sub1 = createOptionsInMenu(e, "delete", id, mouse);
+    let sub2 = createOptionsInMenu(e, "edit", id, mouse);
     newDiv.appendChild(sub1);
     newDiv.appendChild(sub2);
     return newDiv;
 }
 // str represents the text
-function createOptionsInMenu(e, str, id){
+function createOptionsInMenu(e, str, id, mouse){
     let opt = document.createElement("li");
     opt.textContent = str;
-    opt.setAttribute("onclick", `${str}Item(${id});`);
+    opt.setAttribute("onclick", `${str}Item(${id}, ${mouse.x}, ${mouse.y});`);
     return opt;
 }
 // select deletion
-function deleteItem(id){
+function deleteItem(id, mouse_x, mouse_y){
     console.log("complete deletion");
     // document.getElementById(id).remove();
     console.log("yyyy",typeof(id))
@@ -321,9 +321,10 @@ function deleteItem(id){
     plan.generateTable();
     plan.draw();
 }
-function editItem(id){
+function editItem(id, mouse_x, mouse_y){
     // showEditingPage(plan.items.get(id));
-
+    // let editForm = document.createElement("div");
+    let editForm = `<div></div>`;
 }
 class Item{
     // item_id is the auto-generated id for each item as soon as it's constructed
@@ -430,7 +431,7 @@ class Plan{
         this.items.forEach((element) => {
           element.setup_start.calculateStartTime();
           element.setup_duration.calculateEndTime(element.setup_start);
-          element.breakdown_start.calculateEndTime(element.setup_start);
+          element.breakdown_start.calculateStartTime();
           element.breakdown_duration.calculateEndTime(element.breakdown_start);
          });
         this.items.forEach(generateTableItems);
@@ -811,6 +812,7 @@ function decodeJSON(str){
     // update current cnt, it should be acquired from the JSON code
     let plan_obj = JSON.parse(str);
     // plan = new Plan();
+    console.log(plan_obj);
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
     // plan.items = new Map(Object.entries(plan_obj.items));
@@ -825,10 +827,12 @@ function decodeJSON(str){
         cur.name = cur_items[i].name;
         //cur.start_time = new TimeExpression(cur_items[i].start_time);
         //cur.end_time = new TimeExpression(cur_items[i].end_time);
-        cur.setup_start = new TimeExpression(JSON.parse(cur_items[i].setup_start).expression);
-        cur.setup_duration = new TimeExpression(JSON.parse(cur_items[i].setup_duration).expression);
-        cur.breakdown_start = new TimeExpression(JSON.parse(cur_items[i].breakdown_start).expression);
-        cur.breakdown_duration = new TimeExpression(JSON.parse(cur_items[i].breakdown_duration).expression);
+        cur.setup_start = new TimeExpression(cur_items[i].setup_start);
+        // console.log("setup_start", cur.setup_start);
+        cur.setup_duration = new TimeExpression(cur_items[i].setup_duration);
+        cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start);
+        // console.log("breakdown_start", cur.breakdown_start);
+        cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration);
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -838,7 +842,7 @@ function decodeJSON(str){
         cur.rotate = cur_items[i].rotate;
         cur.width = cur_items[i].width;
         cur.length = cur_items[i].length;
-
+        console.log("cccc", cur);
         plan.addItem(cur);
     }
     console.log(plan);
@@ -880,7 +884,7 @@ function getJSON(){
 // plan is a global variable
 window.onload = function(){
 
-    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"start_time\":\"04/28/13:00\",\"end_time\":\"2:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
+    let tmp = "{\"items\":{\"0\":{\"item_id\":0,\"layer\":\"furniture\",\"name\":\"weiwei\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"0:30\",\"breakdown_start\":\"04/28/14:00\",\"breakdown_duration\":\"0:30\",\"owner\":\"chu\",\"type\":\"couch\",\"pos_x\":80,\"pos_y\":40,\"width\":100,\"height\":60},\"11\":{\"item_id\":11,\"layer\":\"top\",\"name\":\"chuxi\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"2:00\",\"breakdown_start\":\"04/28/19:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"zhang\",\"type\":\"triangle_room\",\"pos_x\":400,\"pos_y\":300,\"width\":30,\"height\":40},\"14\":{\"item_id\":14,\"layer\":\"top\",\"name\":\"zhang\",\"setup_start\":\"04/28/13:00\",\"setup_duration\":\"2:00\",\"breakdown_start\":\"04/28/19:00\",\"breakdown_duration\":\"1:00\",\"owner\":\"youli\",\"type\":\"round_room\",\"pos_x\":280,\"pos_y\":120,\"width\":150,\"height\":150}},\"creator\":\"zhang\", \"current_id\":\"16\"}";
     // firstly, try to get data (JSON) from local cache, if cannot find the required data, then get it from the server
     console.log("loading");
     // console.log(JSON.parse(tmp));
