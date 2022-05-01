@@ -10,10 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_04_20_083045) do
+ActiveRecord::Schema[7.0].define(version: 2022_05_01_043347) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-
 
   create_table "plan_models", force: :cascade do |t|
     t.string "name"
@@ -26,6 +25,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_20_083045) do
     t.string "extra3"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["creator"], name: "index_plan_models_on_creator"
   end
 
   create_table "users", force: :cascade do |t|
@@ -41,6 +41,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_04_20_083045) do
     t.string "extra3"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email"
   end
 
 end
