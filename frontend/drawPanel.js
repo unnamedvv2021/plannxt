@@ -174,6 +174,8 @@ dragGraph.prototype = {
     shapeDraw: function () {
         let ctx = this.context;
         if (this.graphShape == "rect_room"){
+            console.log(this.x, this.y, this.w, this.h)
+            console.log(canvas.width, canvas.height, canvasWidth, canvasHeight);
             // first save the ctx
             ctx.save();
             // then translate to the new center
@@ -475,6 +477,9 @@ class Item{
         }
         // console.log("thishishihsihs");
         let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type, this.rotate);
+        // if(this.type == "rect_room"){
+        //     console.log("new graph", graph, this.type)
+        // }
         graphs.push(graph);
         graph.paint();
     }
@@ -777,6 +782,7 @@ function selectTheScale(){
     scale = document.getElementById("scale").value;
     canvas.width = canvasWidth * 50 / scale;
     canvas.height = canvasHeight * 50 / scale;
+    // console.log(canvasWidth, canvas.width);
     plan.draw();
 }
 function dragstart_handler(ev) {
@@ -1002,8 +1008,6 @@ function getJSON(){
             // let extra_json = server_plan_obj.data.extra1;
             // // let extra_obj = JSON.parse(extra_json);
             // console.log(extra_json)
-            
-            
             // return server_plan_obj.data.data;
             
             
@@ -1058,12 +1062,14 @@ function getJSON(){
                     // console.log(breakdown_time);
                 }
                 else if(key == "length"){
-                    document.getElementById("dest_copy").style.height =`${parseInt(extra_obj[key]*10)}px`;
-                    canvasWidth  = canvas.width;
-                    // console.log(document.getElementById("dest_copy").height );
+                    console.log("canvas length/height",extra_obj[key]);
+                    document.getElementById("dest_copy").setAttribute("height", `${parseInt(extra_obj[key]*10)}px`);
+                    canvasHeight  = canvas.height;
+                    console.log(document.getElementById("dest_copy").height );
                 }else if(key == "width"){
-                    document.getElementById("dest_copy").style.width = `${parseInt(extra_obj[key])*10}px`;
-                    canvasHeight = canvas.height;
+                    console.log("canvas width", extra_obj[key]);
+                    document.getElementById("dest_copy").setAttribute("width", `${parseInt(extra_obj[key])*10}px`);
+                    canvasWidth = canvas.width;
                 }
                 
             }
