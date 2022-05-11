@@ -14,10 +14,10 @@ let elec_selected = true;
 let staff_selected = true;
 let defaultSize = new Map();
 let selected_icon_id = -1;
-defaultSize.set("rect_room", [200, 200]);
-defaultSize.set("round_room", [200, 200]);
-defaultSize.set("triangle_room", [200, 200]);
-defaultSize.set("couch", [20, 20]);
+defaultSize.set("rect_room", [40, 40]);
+defaultSize.set("round_room", [40, 40]);
+defaultSize.set("triangle_room", [40, 40]);
+defaultSize.set("couch", [40, 40]);
 class TimeExpression {
   constructor(expression) {
     if(expression){
@@ -33,10 +33,8 @@ class TimeExpression {
       return "Invalid";
     }
     let day_index = parseInt(this.timebar_value / 24);
-    console.log("dayyyyyyy", day_index);
     let hours = parseInt(this.timebar_value - day_index * 24);
     let minutes = Math.round((this.timebar_value - day_index * 24 - hours) * 60);
-    console.log(date_list, date_list[0]);
     return date_list[day_index] + '/' +String("0" + hours).slice(-2) + ':' + String("0" + minutes).slice(-2);
   }
 
@@ -62,7 +60,7 @@ class TimeExpression {
       this.timebar_value = 24 * day_index + hours + minutes / 60.0;
       //console.log("time bar value: ", this.timebar_value);
       for(let i = 0; i< breakdown_time.length; i++){
-        if(this.timebar_value > breakdown_time[i][0] && this.timebar_value < breakdown_time[i][1]){
+        if(this.timebar_value >= breakdown_time[i][0] && this.timebar_value < breakdown_time[i][1]){
           alert("Current Start time is inside break down time!");
           this.timebar_value = -1.0;
         }
@@ -124,14 +122,14 @@ function addBreakdownTime(parentValue, offset, breakdown_time_index){
   }
 }
 
-// let breakdown_time = [
-//     [12, 13],
-//     [16, 18]
-// ];
-// let date_list =["04/28","04/29","04/30","05/01"];
+let breakdown_time = [
+    [12, 13],
+    [16, 18]
+];
+let date_list =["04/28","04/29","04/30","05/01"];
 
-// let canvasWidth = canvas.width;
-// let canvasHeight = canvas.height;
+const canvasWidth = canvas.width;
+const canvasHeight = canvas.height;
 // var canvas = document.getElementById("canvas");
 var graphs = [];
 // var graphAttr = [
@@ -174,8 +172,6 @@ dragGraph.prototype = {
     shapeDraw: function () {
         let ctx = this.context;
         if (this.graphShape == "rect_room"){
-            console.log(this.x, this.y, this.w, this.h)
-            console.log(canvas.width, canvas.height, canvasWidth, canvasHeight);
             // first save the ctx
             ctx.save();
             // then translate to the new center
@@ -248,10 +244,10 @@ dragGraph.prototype = {
             // restore to the original status
             ctx.restore();
         }
-        // if(this.id == selected_icon_id){
-        //     ctx.fillStyle = 'orange';
-        //     ctx.fill();
-        // }
+        if(this.id == selected_icon_id){
+            ctx.fillStyle = 'orange';
+            ctx.fill();
+        }
     },
     erase: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -477,9 +473,6 @@ class Item{
         }
         // console.log("thishishihsihs");
         let graph = new dragGraph(this.item_id, this.pos_x * 50 / scale, this.pos_y * 50 / scale, this.width * 50 / scale, this.length * 50 / scale, this.strokeStyle, canvas, this.type, this.rotate);
-        // if(this.type == "rect_room"){
-        //     console.log("new graph", graph, this.type)
-        // }
         graphs.push(graph);
         graph.paint();
     }
@@ -532,6 +525,7 @@ class Plan{
         $("#tableItems").append("<tbody id='tableItemsBody'></tbody>");
         console.log("this is what i want ", plan.items);
         this.items.forEach((element) => {
+            
           element.setup_start.calculateStartTime();
           element.setup_duration.calculateEndTime(element.setup_start);
           element.breakdown_start.calculateStartTime(element.setup_start);
@@ -694,6 +688,8 @@ function clickToEditData(e, item_id, attr){
     <input style="width:100px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
     </div>`);
     document.getElementById("blankInput").select();
+    plan.generateTable();
+    plan.draw();
     // let blank = `<input type="text" onchange="">`;
     // $("#editData").append(blank);
 
@@ -774,7 +770,7 @@ function selectTheTime(){
     let current_time = new TimeExpression();
     current_time.timebar_value = document.getElementById("timebar").value;
     time = current_time.timebar_value;
-    console.log("current time is ", time);
+    // console.log("current time is ", time);
     document.getElementById("showTimebar").innerText = `Plan Time: ${current_time.toDisplayTime()}`;
     plan.draw();
 }
@@ -782,7 +778,6 @@ function selectTheScale(){
     scale = document.getElementById("scale").value;
     canvas.width = canvasWidth * 50 / scale;
     canvas.height = canvasHeight * 50 / scale;
-    // console.log(canvasWidth, canvas.width);
     plan.draw();
 }
 function dragstart_handler(ev) {
@@ -932,16 +927,13 @@ function closeMenu(){
 // decode from JSON
 function decodeJSON(str){
     console.log(str);
-    if(str == null){
-        return plan;
-    }
     // update current cnt, it should be acquired from the JSON code
     let plan_obj = JSON.parse(JSON.parse(str));
     console.log(plan_obj);
     // plan = new Plan();
     plan.creator = plan_obj.creator;
     plan.current_id = plan_obj.current_id;
-    // console.log(plan.current_id);
+    console.log(plan.current_id);
     cnt = plan.current_id;
     // plan.items = new Map(Object.entries(plan_obj.items));
 
@@ -955,7 +947,7 @@ function decodeJSON(str){
         cur.name = cur_items[i].name;
         //cur.start_time = new TimeExpression(cur_items[i].start_time);
         //cur.end_time = new TimeExpression(cur_items[i].end_time);
-        // console.log((cur_items[i].setup_start).expression);
+        console.log((cur_items[i].setup_start).expression);
         cur.setup_start = new TimeExpression(cur_items[i].setup_start.expression);
         cur.setup_duration = new TimeExpression(cur_items[i].setup_duration.expression);
         cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start.expression);
@@ -1001,84 +993,16 @@ function getJSON(){
         if(getRequest.status == 200){
             server_plan_obj = JSON.parse(getRequest.responseText);
             // str =  server_plan_obj.data.data;
-            // console.log(getRequest.responseText);
-            // console.log("target", server_plan_obj.data.data);
-            // console.log(server_plan_obj);
+            console.log(getRequest.responseText);
+            console.log("target", server_plan_obj.data.data);
+            console.log(server_plan_obj);
             // make some initialization
             // let extra_json = server_plan_obj.data.extra1;
             // // let extra_obj = JSON.parse(extra_json);
             // console.log(extra_json)
+            
+            
             // return server_plan_obj.data.data;
-            
-            
-            
-            // deal with the extra values
-            let extra_json = server_plan_obj.data.extra1;
-            console.log(extra_json);
-            let extra_obj = JSON.parse(extra_json);
-            console.log(extra_obj);
-            
-            let dateRe = /^day.*date$/;
-            let hourRe = /^day.*hour.*\d$/;
-            let days = 0;
-            for(let key in extra_obj){
-                if(dateRe.test(key) && extra_obj[key] != ""){
-                    days += 1;
-                    let date = extra_obj[key].split("-");
-                    // console.log(date);
-                    let str_date = date[1] + "/" + date[2];
-                    date_list.push(str_date);
-                    // for every new day, generate two break slots
-                    breakdown_time.push([0,0]);
-                    breakdown_time.push([0,0]);
-                    breakdown_time.push([0,0]);
-                    breakdown_time.push([0,0]);
-                    // console.log(breakdown_time);
-                }else if(hourRe.test(key) && extra_obj[key] != ""){
-                    // console.log("sappppppp")
-                    let day = parseInt(key[3]);
-                    let time_point = parseInt(key[9]);
-                    if(time_point == 1){
-                        breakdown_time[day*4 - 4][0] = 0 + 24*(day-1);
-                        breakdown_time[day*4 - 4][1] = parseInt(extra_obj[key]) + 24*(day-1);
-                    }
-                    else if(time_point == 2){
-                        breakdown_time[day*4 - 3][0] = parseInt(extra_obj[key]) + 24*(day-1);
-                    }
-                    else if(time_point == 3){
-                        breakdown_time[day*4 - 3][1] = parseInt(extra_obj[key]) + 24*(day-1);
-                    }
-                    else if(time_point == 4){
-                        breakdown_time[day*4 - 2][0] = parseInt(extra_obj[key]) + 24*(day-1);
-                    }
-                    else if(time_point == 5){
-                        breakdown_time[day*4 - 2][1] = parseInt(extra_obj[key]) + 24*(day-1);
-                    }
-                    else if(time_point == 6){
-                        breakdown_time[day*4 - 1][0] = parseInt(extra_obj[key]) + 24*(day-1);
-                        breakdown_time[day*4 - 1][1] = 24*day;
-                    }
-                    // console.log(key, extra_obj[key], day, time_point);
-                    // console.log(breakdown_time);
-                }
-                else if(key == "length"){
-                    console.log("canvas length/height",extra_obj[key]);
-                    document.getElementById("dest_copy").setAttribute("height", `${parseInt(extra_obj[key]*10)}px`);
-                    canvasHeight  = canvas.height;
-                    console.log(document.getElementById("dest_copy").height );
-                }else if(key == "width"){
-                    console.log("canvas width", extra_obj[key]);
-                    document.getElementById("dest_copy").setAttribute("width", `${parseInt(extra_obj[key])*10}px`);
-                    canvasWidth = canvas.width;
-                }
-                
-            }
-            // console.log(breakdown_time);
-            // console.log(date_list, typeof(date_list), date_list[0]);
-            // console.log(days);
-            document.getElementById("timebar").setAttribute("max", 24*days);
-            document.getElementById("timebar").value = breakdown_time[0][1];
-            
             let plan_json = server_plan_obj.data.data;
             plan = decodeJSON(plan_json);
             plan.draw();
@@ -1089,20 +1013,37 @@ function getJSON(){
         }
     }
 }
-// var timeRe = /^\d{2}\/\d{2}\/\d+:\d{2}$/i;
-// var relativeRe = /^t\d+\+\d+:\d{2}/i;
-let breakdown_time = [
-    // [12, 13],
-    // [16, 18]
-];
-let date_list =[
-    // "04/28","04/29","04/30","05/01"
-    ];
-
-let canvasWidth = canvas.width;
-let canvasHeight = canvas.height;
-
-
+function decodeLocalJson(str){
+    let plan_obj = JSON.parse(str);
+    plan.creator = plan_obj.creator;
+    plan.current_id = plan_obj.current_id;
+    let cur_items = plan_obj.items;
+    for(let i in cur_items){
+        let cur = new Item();
+        cur.item_id = cur_items[i].item_id;
+        cur.layer = cur_items[i].layer;
+        cur.name = cur_items[i].name;
+        //cur.start_time = new TimeExpression(cur_items[i].start_time);
+        //cur.end_time = new TimeExpression(cur_items[i].end_time);
+        // console.log((cur_items[i].setup_start).expression);
+        cur.setup_start = new TimeExpression(cur_items[i].setup_start);
+        cur.setup_duration = new TimeExpression(cur_items[i].setup_duration);
+        cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start);
+        cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration);
+        cur.owner = cur_items[i].owner;
+        cur.setup_time = cur_items[i].setup_time;
+        cur.breakdown_time = cur_items[i].breakdown_time;
+        cur.type = cur_items[i].type;
+        cur.pos_x = cur_items[i].pos_x;
+        cur.pos_y = cur_items[i].pos_y;
+        cur.rotate = cur_items[i].rotate;
+        cur.width = cur_items[i].width;
+        cur.length = cur_items[i].length;
+        console.log(cur)
+        plan.addItem(cur);
+    }
+    return plan;
+}
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
 window.onload = function(){
@@ -1112,23 +1053,23 @@ window.onload = function(){
     console.log("loading");
     // console.log(JSON.parse(tmp));
     // call the interface from server
-    getJSON();
+    // getJSON();
     
     // setTimeout(function(){
     //     // console.log("not loaded");
-    // let plan_json = server_plan_obj.data.data;
-    // console.log("plan_json", plan_json);
-    // plan = decodeLocalJson(tmp);
-    
-    // console.log("pllannnnnn", plan);
-    // let json_plan = JSON.stringify(plan_obj);
-    // let out = new Plan();
-    // out = JSON.parse(JSON.parse(json_plan));
-    // console.log("cccccccccccc", json_plan);
-    // console.log("bbbbbbbbbbbb", plan);
-    // plan.draw();
-    // plan.generateTable();
-    // selectTheTime();
+        // let plan_json = server_plan_obj.data.data;
+        // console.log("plan_json", plan_json);
+        plan = decodeLocalJson(tmp);
+        
+        console.log("pllannnnnn", plan);
+        // let json_plan = JSON.stringify(plan_obj);
+        // let out = new Plan();
+        // out = JSON.parse(JSON.parse(json_plan));
+        // console.log("cccccccccccc", json_plan);
+        // console.log("bbbbbbbbbbbb", plan);
+        plan.draw();
+        plan.generateTable();
+        selectTheTime();
     // }, 1000);
     
 }
