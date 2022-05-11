@@ -244,10 +244,10 @@ dragGraph.prototype = {
             // restore to the original status
             ctx.restore();
         }
-        // if(this.id == selected_icon_id){
-        //     ctx.fillStyle = 'orange';
-        //     ctx.fill();
-        // }
+        if(this.id == selected_icon_id){
+            ctx.fillStyle = 'orange';
+            ctx.fill();
+        }
     },
     erase: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -525,6 +525,7 @@ class Plan{
         $("#tableItems").append("<tbody id='tableItemsBody'></tbody>");
         console.log("this is what i want ", plan.items);
         this.items.forEach((element) => {
+            
           element.setup_start.calculateStartTime();
           element.setup_duration.calculateEndTime(element.setup_start);
           element.breakdown_start.calculateStartTime(element.setup_start);
@@ -687,6 +688,8 @@ function clickToEditData(e, item_id, attr){
     <input style="width:100px; height: 30px;" id="blankInput" type="text" onchange="changeData(event, ${item_id}, '${attr}');" value="${dispalyText}">
     </div>`);
     document.getElementById("blankInput").select();
+    plan.generateTable();
+    plan.draw();
     // let blank = `<input type="text" onchange="">`;
     // $("#editData").append(blank);
 
@@ -1023,10 +1026,10 @@ function decodeLocalJson(str){
         //cur.start_time = new TimeExpression(cur_items[i].start_time);
         //cur.end_time = new TimeExpression(cur_items[i].end_time);
         // console.log((cur_items[i].setup_start).expression);
-        cur.setup_start = cur_items[i].setup_start;
-        cur.setup_duration = cur_items[i].setup_duration;
-        cur.breakdown_start = cur_items[i].breakdown_start;
-        cur.breakdown_duration = cur_items[i].breakdown_duration;
+        cur.setup_start = new TimeExpression(cur_items[i].setup_start);
+        cur.setup_duration = new TimeExpression(cur_items[i].setup_duration);
+        cur.breakdown_start = new TimeExpression(cur_items[i].breakdown_start);
+        cur.breakdown_duration = new TimeExpression(cur_items[i].breakdown_duration);
         cur.owner = cur_items[i].owner;
         cur.setup_time = cur_items[i].setup_time;
         cur.breakdown_time = cur_items[i].breakdown_time;
@@ -1039,6 +1042,7 @@ function decodeLocalJson(str){
         console.log(cur)
         plan.addItem(cur);
     }
+    return plan;
 }
 // when loading, get the JSON data and then draw the plan
 // plan is a global variable
@@ -1049,23 +1053,23 @@ window.onload = function(){
     console.log("loading");
     // console.log(JSON.parse(tmp));
     // call the interface from server
-    getJSON();
+    // getJSON();
     
     // setTimeout(function(){
     //     // console.log("not loaded");
-    // let plan_json = server_plan_obj.data.data;
-    // console.log("plan_json", plan_json);
-    // plan = decodeLocalJson(tmp);
-    
-    // console.log("pllannnnnn", plan);
-    // let json_plan = JSON.stringify(plan_obj);
-    // let out = new Plan();
-    // out = JSON.parse(JSON.parse(json_plan));
-    // console.log("cccccccccccc", json_plan);
-    // console.log("bbbbbbbbbbbb", plan);
-    // plan.draw();
-    // plan.generateTable();
-    // selectTheTime();
+        // let plan_json = server_plan_obj.data.data;
+        // console.log("plan_json", plan_json);
+        plan = decodeLocalJson(tmp);
+        
+        console.log("pllannnnnn", plan);
+        // let json_plan = JSON.stringify(plan_obj);
+        // let out = new Plan();
+        // out = JSON.parse(JSON.parse(json_plan));
+        // console.log("cccccccccccc", json_plan);
+        // console.log("bbbbbbbbbbbb", plan);
+        plan.draw();
+        plan.generateTable();
+        selectTheTime();
     // }, 1000);
     
 }
